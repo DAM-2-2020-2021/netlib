@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.packet;
+package eu.cifpfbmoll.netlib.packet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

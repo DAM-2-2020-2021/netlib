@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.packet;
+package eu.cifpfbmoll.netlib.packet;
 
 /**
  * Functional Interface to define how to handle a specific Packet type.

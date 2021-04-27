@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.node;
+package eu.cifpfbmoll.netlib.node;
 
 import java.io.IOException;
 import java.io.InputStream;
