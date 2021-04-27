@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.node;
+package eu.cifpfbmoll.netlib.node;
 
 /**
  * The NodeConnection Class manages a single connection with another node on the network.

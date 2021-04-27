@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.node;
+package eu.cifpfbmoll.netlib.node;
 
 /**
  * A Node is another device running the same code in the same network.

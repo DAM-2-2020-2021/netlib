@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.packet;
+package eu.cifpfbmoll.netlib.packet;
 
 import org.apache.commons.lang3.StringUtils;
 

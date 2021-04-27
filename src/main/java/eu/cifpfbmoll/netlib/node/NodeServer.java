@@ -1,4 +1,4 @@
-package eu.cifpfbmoll.netlib.net.node;
+package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
