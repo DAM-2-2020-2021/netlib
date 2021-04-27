@@ -1,5 +1,5 @@
 # netlib
-## How to use library with Maven
+## Use in Maven project
 Copy and paste the following content in the file `<USER_HOME>/.m2/settings.xml`:
 ```
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
