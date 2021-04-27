@@ -1,6 +1,6 @@
 # netlib
 ## How to use library with Maven
-Create a file in your Maven directory (if not present), at `<USER_HOME>/.m2/settings.xml` and paste the following code:
+Copy and paste the following content in the file `<USER_HOME>/.m2/settings.xml`:
 ```
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,7 +34,7 @@ Create a file in your Maven directory (if not present), at `<USER_HOME>/.m2/sett
     <server>
       <id>github-cifpfbmoll</id>
       <username>snebotcifpfbmoll</username>
-      <password>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</password>
+      <password>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</password>
     </server>
   </servers>
 </settings>
