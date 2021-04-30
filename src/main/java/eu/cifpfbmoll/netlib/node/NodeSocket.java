@@ -81,7 +81,7 @@ public class NodeSocket {
      * Read from current connection using InputStream and
      * store the data in a buffer.
      *
-     * @param data data buffer used to store read data
+     * @param data   data buffer used to store read data
      * @param offset offset to read from
      * @param length maximum length of read data
      * @return length of read data, or -1 if there is no more to read
