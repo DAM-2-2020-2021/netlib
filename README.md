@@ -34,7 +34,7 @@ Copy and paste the following content in the file `<USER_HOME>/.m2/settings.xml`:
     <server>
       <id>github</id>
       <username>snebotcifpfbmoll</username>
-      <password>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</password>
+      <password>ACCESS_TOKEN</password>
     </server>
   </servers>
 </settings>
