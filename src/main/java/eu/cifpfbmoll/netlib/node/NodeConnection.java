@@ -1,6 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.packet.PacketManager;
+import eu.cifpfbmoll.netlib.packet.PacketObject;
 
 /**
  * The NodeConnection Class manages a single connection with another node on the network.
@@ -31,5 +32,8 @@ public class NodeConnection {
 
     public PacketManager getManager() {
         return manager;
+    }
+
+    public void send(PacketObject packet) {
     }
 }

@@ -11,7 +11,7 @@ import java.util.Arrays;
  *
  * <p>Instances of this Class must be created using the Constructor Factory Method</p>
  */
-public class Packet {
+public class Packet implements PacketObject {
     private static final Charset CHARSET_ENCODING = StandardCharsets.UTF_8;
     private static final byte DEFAULT_TYPE_VALUE = 0;
     private static final int DEFAULT_TTL_VALUE = 32;
@@ -75,24 +75,6 @@ public class Packet {
     }
 
     /**
-     * Decode Packet from byte array.
-     *
-     * @param bytes raw byte array.
-     * @return decoded Packet object
-     */
-    public static Packet fromBytes(byte[] bytes) {
-        byte[] ptype = Arrays.copyOfRange(bytes, 0, PACKET_TYPE_SIZE);
-        String type = new String(ptype, CHARSET_ENCODING);
-        int index = PACKET_TYPE_SIZE;
-        byte ttl = bytes[index++];
-        byte src = bytes[index++];
-        byte dst = bytes[index++];
-        byte resend = bytes[index++];
-        byte[] data = Arrays.copyOfRange(bytes, index, bytes.length);
-        return new Packet(type, ttl, src, dst, resend, data);
-    }
-
-    /**
      * Get the correct format of type header field.
      *
      * <p>Checks for correct length and appends default values if needed.</p>
@@ -137,12 +119,20 @@ public class Packet {
         return PACKET_TYPE_SIZE + PACKET_TTL_SIZE + PACKET_ID_SIZE * 3 + this.data.length;
     }
 
-    /**
-     * Convert Packet data to byte array.
-     *
-     * @return raw byte array
-     */
-    public byte[] bytes() {
+    @Override
+    public void load(byte[] bytes) {
+        byte[] ptype = Arrays.copyOfRange(bytes, 0, PACKET_TYPE_SIZE);
+        this.type = new String(ptype, CHARSET_ENCODING);
+        int index = PACKET_TYPE_SIZE;
+        this.ttl = bytes[index++];
+        this.src = bytes[index++];
+        this.dst = bytes[index++];
+        this.resend = bytes[index++];
+        this.data = Arrays.copyOfRange(bytes, index, bytes.length);
+    }
+
+    @Override
+    public byte[] dump() {
         byte[] bytes = new byte[this.size()];
         byte[] str = this.type.getBytes(CHARSET_ENCODING);
         int index = 0;
