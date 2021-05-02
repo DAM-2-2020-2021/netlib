@@ -24,22 +24,10 @@ public class NodeSocket {
      *
      * @param host host name
      * @param port port number
-     * @return NodeSocket with specified host and port
      * @throws IOException if the assignment of InputStream/OutputStream fails
      */
-    public static NodeSocket create(String host, int port) throws IOException {
-        return NodeSocket.create(new Socket(host, port));
-    }
-
-    /**
-     * Create a new NodeSocket using the constructor factory method.
-     *
-     * @param socket socket to create NodeSocket from
-     * @return NodeSocket with specified socket
-     * @throws IOException if the assignment of InputStream/OutputStream fails
-     */
-    public static NodeSocket create(Socket socket) throws IOException {
-        return new NodeSocket(socket);
+    private NodeSocket(String host, int port) throws IOException {
+        this(new Socket(host, port));
     }
 
     /**
@@ -81,7 +69,7 @@ public class NodeSocket {
      * Read from current connection using InputStream and
      * store the data in a buffer.
      *
-     * @param data data buffer used to store read data
+     * @param data   data buffer used to store read data
      * @param offset offset to read from
      * @param length maximum length of read data
      * @return length of read data, or -1 if there is no more to read
