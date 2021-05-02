@@ -1,5 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.annotation.PacketType;
+import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketObject;
 
@@ -45,12 +47,18 @@ public class NodeConnection {
     /**
      * Send a PacketObject to the connected node.
      *
-     * @param packet PacketObject to send
+     * @param object PacketObject to send
      * @return true if send was successful, false otherwise
      */
-    public boolean send(PacketObject packet) {
-        if (packet == null) return false;
+    public boolean send(PacketObject object) {
+        if (object == null) return false;
         try {
+            PacketType packetType = object.getClass().getAnnotation(PacketType.class);
+            if (packetType == null) return false;
+            String type = Packet.formatType(packetType.value());
+
+            // TODO: implement packet src and dst ids
+            Packet packet = Packet.create(type, 0, 0, object.dump());
             this.socket.write(packet.dump());
             return true;
         } catch (IOException e) {
