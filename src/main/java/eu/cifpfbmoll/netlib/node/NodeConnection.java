@@ -3,6 +3,8 @@ package eu.cifpfbmoll.netlib.node;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketObject;
 
+import java.io.IOException;
+
 /**
  * The NodeConnection Class manages a single connection with another node on the network.
  *
@@ -22,18 +24,37 @@ public class NodeConnection {
         this.manager = manager;
     }
 
+    /**
+     * Get Node.
+     *
+     * @return current Node
+     */
     public Node getNode() {
         return node;
     }
 
-    public NodeSocket getSocket() {
-        return socket;
-    }
-
+    /**
+     * Get PacketManager.
+     *
+     * @return current PacketManager
+     */
     public PacketManager getManager() {
         return manager;
     }
 
-    public void send(PacketObject packet) {
+    /**
+     * Send a PacketObject to the connected node.
+     *
+     * @param packet PacketObject to send
+     * @return true if send was successful, false otherwise
+     */
+    public boolean send(PacketObject packet) {
+        if (packet == null) return false;
+        try {
+            this.socket.write(packet.dump());
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
