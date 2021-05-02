@@ -7,5 +7,5 @@ package eu.cifpfbmoll.netlib.packet;
  */
 @FunctionalInterface
 public interface PacketHandler {
-    void handle(PacketObject packet);
+    void handle(PacketObject object);
 }
