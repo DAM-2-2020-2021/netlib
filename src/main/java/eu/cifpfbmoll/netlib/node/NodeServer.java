@@ -26,7 +26,7 @@ public class NodeServer extends Threaded {
      *
      * @throws IOException if port binding fails
      */
-    private NodeServer() throws IOException {
+    protected NodeServer() throws IOException {
         this(new ServerSocket(DEFAULT_PORT));
     }
 
@@ -36,7 +36,7 @@ public class NodeServer extends Threaded {
      * @param port port number to bound socket to
      * @throws IOException if port binding fails
      */
-    private NodeServer(int port) throws IOException {
+    protected NodeServer(int port) throws IOException {
         this(new ServerSocket(port));
     }
 
@@ -46,7 +46,7 @@ public class NodeServer extends Threaded {
      * @param socket ServerSocket to create NodeServer from
      * @throws NullPointerException if socket is null
      */
-    private NodeServer(ServerSocket socket) throws NullPointerException {
+    protected NodeServer(ServerSocket socket) throws NullPointerException {
         if (socket == null) throw new NullPointerException("ServerSocket must not be null");
         this.socket = socket;
     }
