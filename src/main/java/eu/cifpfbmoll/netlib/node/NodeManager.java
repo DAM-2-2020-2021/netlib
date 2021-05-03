@@ -23,6 +23,16 @@ public class NodeManager {
     }
 
     /**
+     * Create a new NodeServer and start listening for connections.
+     *
+     * @param port listening port
+     * @return NodeServer instance
+     */
+    public static NodeServer startServer(Integer port) {
+        return null;
+    }
+
+    /**
      * Connect to a node with the specified ID.
      *
      * @param id node ID

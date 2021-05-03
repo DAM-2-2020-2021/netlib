@@ -4,6 +4,7 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketObject;
+import eu.cifpfbmoll.netlib.util.Threaded;
 
 import java.io.IOException;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
  * @see Node
  * @see NodeSocket
  */
-public class NodeConnection {
+public class NodeConnection extends Threaded {
     private final Node node;
     private final NodeSocket socket;
     private final PacketManager manager;
@@ -64,5 +65,9 @@ public class NodeConnection {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    @Override
+    public void run() {
     }
 }
