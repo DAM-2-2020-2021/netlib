@@ -1,7 +1,12 @@
 package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.packet.PacketManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +17,10 @@ import java.util.Map;
 public class NodeManager {
     private final Map<Integer, String> nodes = new HashMap<>();
     private final PacketManager manager;
+    private String ip;
+    private String subnet;
+    private static final int CALL_TIMEOUT = 1000;
+    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
 
     /**
      * Create a NodeManager with a PacketManager.
@@ -99,6 +108,26 @@ public class NodeManager {
      *
      * @param ips IP list
      */
-    public void discover(List<String> ips) {
+    public void discover(List<String> ips, String subnet) {
+        for (int i = 1; i < 255; i++) {
+            String host = subnet + "." + i;
+            try {
+                if (InetAddress.getByName(host).isReachable(CALL_TIMEOUT)) {
+                    ips.add(host);
+                    System.out.println(host + " is reachable");
+                }
+            } catch (UnknownHostException e) {
+                log.error("UnknownHostException when calling a device.");
+            } catch (IOException e) {
+                log.error("IOException when calling a device.");
+            }
+        }
+    }
+
+    public void getCurrentIpAndSubnet() throws UnknownHostException {
+        //TODO: ask Jumi why we get wrong current ip
+        ip = InetAddress.getLocalHost().getHostAddress();
+        String[] splitIp = ip.split("\\.");
+        subnet = String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 }

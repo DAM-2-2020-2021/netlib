@@ -36,6 +36,10 @@ public class NodeConnection extends Threaded {
         return node;
     }
 
+    public NodeSocket getNodeSocket(){
+        return socket;
+    }
+
     /**
      * Get PacketManager.
      *

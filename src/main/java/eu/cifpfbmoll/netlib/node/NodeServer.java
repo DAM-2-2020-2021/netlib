@@ -49,6 +49,7 @@ public class NodeServer extends Threaded {
     protected NodeServer(ServerSocket socket) throws NullPointerException {
         if (socket == null) throw new NullPointerException("ServerSocket must not be null");
         this.socket = socket;
+        this.start();
     }
 
     @Override
