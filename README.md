@@ -49,3 +49,20 @@ Note that you must replace `ACCESS_TOKEN` with a GitHub Personal Access Token. C
   </servers>
 </settings>
 ```
+For an Android project you can place the following code inside your project's module `build.gradle` file:
+```
+repositories {
+    mavenCentral()
+    maven {
+        credentials {
+            username 'snebotcifpfbmoll'
+            password 'TOKEN_HERE'
+        }
+        url    'https://maven.pkg.github.com/dam-2-2020-2021/*'
+    }
+}
+
+dependencies {
+    implementation group: 'eu.cifpfbmoll', name: 'netlib', version: 'VERSION_HERE'
+}
+```

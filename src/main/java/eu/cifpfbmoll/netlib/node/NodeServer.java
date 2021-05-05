@@ -24,33 +24,20 @@ public class NodeServer extends Threaded {
     /**
      * Create a new NodeServer with a port to listen on.
      *
-     * @return NodeServer with the default port number
      * @throws IOException if port binding fails
      */
-    public static NodeServer create() throws IOException {
-        return new NodeServer(new ServerSocket(DEFAULT_PORT));
+    protected NodeServer() throws IOException {
+        this(new ServerSocket(DEFAULT_PORT));
     }
 
     /**
      * Create a new NodeServer with a port to listen on.
      *
      * @param port port number to bound socket to
-     * @return NodeServer with an assigned port number
      * @throws IOException if port binding fails
      */
-    public static NodeServer create(int port) throws IOException {
-        return new NodeServer(new ServerSocket(port));
-    }
-
-    /**
-     * Create a new NodeServer using the constructor factory method.
-     *
-     * @param socket ServerSocket to create NodeServer from
-     * @return NodeServer with assigned ServerSocket
-     * @throws NullPointerException if socket is null
-     */
-    public static NodeServer create(ServerSocket socket) throws NullPointerException {
-        return new NodeServer(socket);
+    protected NodeServer(int port) throws IOException {
+        this(new ServerSocket(port));
     }
 
     /**
@@ -59,7 +46,7 @@ public class NodeServer extends Threaded {
      * @param socket ServerSocket to create NodeServer from
      * @throws NullPointerException if socket is null
      */
-    private NodeServer(ServerSocket socket) throws NullPointerException {
+    protected NodeServer(ServerSocket socket) throws NullPointerException {
         if (socket == null) throw new NullPointerException("ServerSocket must not be null");
         this.socket = socket;
     }
