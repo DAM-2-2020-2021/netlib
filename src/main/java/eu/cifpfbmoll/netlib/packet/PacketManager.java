@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class PacketManager {
     private static final Logger log = LoggerFactory.getLogger(PacketManager.class);
-    private final Map<String, PacketHandler> handlers = new HashMap<>();
+    private final Map<String, PacketHandler<?>> handlers = new HashMap<>();
     private final Map<String, Class<?>> types = new HashMap<>();
 
     /**
@@ -29,7 +29,7 @@ public class PacketManager {
      * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
      * @see PacketHandler
      */
-    public void add(Class<?> clazz, PacketHandler handler) throws NullPointerException, IllegalArgumentException {
+    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
         if (clazz == null || handler == null)
             throw new NullPointerException("Object's class and PacketHandler cannot be null.");
         PacketType packetType = clazz.getAnnotation(PacketType.class);
