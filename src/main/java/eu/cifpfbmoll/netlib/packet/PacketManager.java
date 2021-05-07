@@ -27,15 +27,17 @@ public class PacketManager {
      * @param handler     packet handler to handle a Packet type
      * @see PacketHandler
      */
-    public void add(Class<? extends PacketObject> objectClass, PacketHandler handler) {
-        if (objectClass == null || handler == null) return;
+    public void add(Class<? extends PacketObject> objectClass, PacketHandler handler) throws NullPointerException, IllegalArgumentException {
+        if (objectClass == null || handler == null)
+            throw new NullPointerException("PacketObject class and PacketHandler cannot be null.");
         PacketType packetType = objectClass.getAnnotation(PacketType.class);
-        if (packetType == null) return;
+        if (packetType == null)
+            throw new IllegalArgumentException(String.format("Class %s must have the @PacketType annotation.", objectClass.getSimpleName()));
         String type = Packet.formatType(packetType.value());
-        if (!this.handlers.containsKey(type) && !this.types.containsKey(type)) {
-            this.handlers.put(type, handler);
-            this.types.put(type, objectClass);
-        }
+        if (this.handlers.containsKey(type) || this.types.containsKey(type))
+            throw new IllegalArgumentException(String.format("PacketType %s is already registered.", type));
+        this.handlers.put(type, handler);
+        this.types.put(type, objectClass);
     }
 
     /**
@@ -46,6 +48,7 @@ public class PacketManager {
     public void remove(String type) {
         String packetType = Packet.formatType(type);
         this.handlers.remove(packetType);
+        this.types.remove(packetType);
     }
 
     /**
@@ -63,7 +66,7 @@ public class PacketManager {
                 object.load(packet.data);
                 handler.handle(object);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("failed to process packet: ", e);
             }
         }
     }

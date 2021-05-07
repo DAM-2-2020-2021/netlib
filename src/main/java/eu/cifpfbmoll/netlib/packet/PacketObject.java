@@ -1,6 +1,8 @@
 package eu.cifpfbmoll.netlib.packet;
 
-public interface PacketObject {
+import java.io.Serializable;
+
+public interface PacketObject extends Serializable {
     /**
      * Decode PacketObject from byte array.
      *
