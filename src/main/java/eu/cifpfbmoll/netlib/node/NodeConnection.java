@@ -7,6 +7,7 @@ import eu.cifpfbmoll.netlib.packet.PacketObject;
 import eu.cifpfbmoll.netlib.util.Threaded;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The NodeConnection Class manages a single connection with another node on the network.
@@ -19,12 +20,15 @@ import java.io.IOException;
 public class NodeConnection extends Threaded {
     private final Node node;
     private final NodeSocket socket;
-    private final PacketManager manager;
+    private final NodeHealthConnection nodeHealthConnection;
+   // private final PacketManager manager;
 
-    protected NodeConnection(Node node, NodeSocket socket, PacketManager manager) {
+    public NodeConnection(Node node, NodeSocket socket, NodeHealthConnection nodeHealthConnection/*PacketManager manager*/) {
         this.node = node;
         this.socket = socket;
-        this.manager = manager;
+        this.nodeHealthConnection=nodeHealthConnection;
+        //this.manager = manager;
+        this.start();
     }
 
     /**
@@ -40,14 +44,10 @@ public class NodeConnection extends Threaded {
         return socket;
     }
 
-    /**
-     * Get PacketManager.
-     *
-     * @return current PacketManager
-     */
-    public PacketManager getManager() {
+
+    /*public PacketManager getManager() {
         return manager;
-    }
+    }*/
 
     /**
      * Send a PacketObject to the connected node.
@@ -71,7 +71,16 @@ public class NodeConnection extends Threaded {
         }
     }
 
+    private void identifyConnections(){
+        try {
+            this.socket.write("DummyTask maybe".getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            System.out.println("problem writing message");
+        }
+    }
+
     @Override
     public void run() {
+        this.identifyConnections();
     }
 }

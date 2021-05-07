@@ -1,12 +1,14 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.packet.PacketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,30 +17,60 @@ import java.util.Map;
  * Discover and manage nodes in the network and register
  */
 public class NodeManager {
+    private static int id=0;
     private final Map<Integer, String> nodes = new HashMap<>();
-    private final PacketManager manager;
+    //private final PacketManager manager;
     private String ip;
     private String subnet;
     private static final int CALL_TIMEOUT = 1000;
+    private NodeServer nodeServer;
+    private NodeHealthConnection nodeHealthConnection;
+    public ArrayList<NodeConnection> nodeConnectionsList=new ArrayList<>();
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
+    private List<String> ips;
 
-    /**
-     * Create a NodeManager with a PacketManager.
-     *
-     * @param manager PacketManager
-     */
-    public NodeManager(PacketManager manager) {
+   /* public NodeManager(PacketManager manager) {
         this.manager = manager;
+    }*/
+
+    public NodeManager(String ip) {
+        this.ip = ip;
+        this.getCurrentSubnet();
+        this.discover();
+        //this.assignNodes();
+        this.nodeServer=new NodeServer();
+        this.identifyConnections();
+        //this.nodeHealthConnection=new NodeHealthConnection();
+        //this.nodeServer=new NodeServer(this.nodeHealthConnection);
     }
 
-    /**
-     * Create a new NodeServer and start listening for connections.
-     *
-     * @param port listening port
-     * @return NodeServer instance
-     */
-    public static NodeServer startServer(Integer port) {
-        return null;
+    public boolean nodeInHash(String ip){
+        return nodes.containsValue(ip);
+    }
+
+    public void addNewPlayer(String ip){
+        try {
+            this.nodeConnectionsList.add(new NodeConnection(new Node(id,ip),new NodeSocket(ip, NodeServer.DEFAULT_PORT),new NodeHealthConnection()));
+            this.put(id,ip);
+        } catch (IOException e) {
+            System.out.println("Error creating socket in NodeManager");
+        }
+        System.out.println("new player added");
+        id++;
+    }
+
+    private void identifyConnections() {
+        for (int i = 0; i < ips.size(); i++) {
+            try {
+                Socket socket = new Socket(ips.get(i),NodeServer.DEFAULT_PORT);
+                DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
+                dataOutputStream.writeUTF("DummyTask maybe");
+                dataOutputStream.close();
+                socket.close();
+            } catch (IOException e) {
+                System.out.println("IOException creating a Socket.");
+            }
+        }
     }
 
     /**
@@ -62,14 +94,10 @@ public class NodeManager {
         return null;
     }
 
-    /**
-     * Get PacketManager.
-     *
-     * @return Current PacketManager
-     */
-    public PacketManager getManager() {
+
+    /*public PacketManager getManager() {
         return manager;
-    }
+    }*/
 
     /**
      * Get an IP address for a node ID.
@@ -105,16 +133,16 @@ public class NodeManager {
      *
      * <p>If a device is found and responds with their ID,
      * it will be added to the nodes table with its ID.</p>
-     *
-     * @param ips IP list
      */
-    public void discover(List<String> ips, String subnet) {
+    public void discover() {
+        ips = new ArrayList<>();
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             try {
                 if (InetAddress.getByName(host).isReachable(CALL_TIMEOUT)) {
                     ips.add(host);
                     System.out.println(host + " is reachable");
+                    ips.add(host);
                 }
             } catch (UnknownHostException e) {
                 log.error("UnknownHostException when calling a device.");
@@ -124,9 +152,8 @@ public class NodeManager {
         }
     }
 
-    public void getCurrentIpAndSubnet() throws UnknownHostException {
-        //TODO: ask Jumi why we get wrong current ip
-        ip = InetAddress.getLocalHost().getHostAddress();
+    public void getCurrentSubnet() {
+        //ip = InetAddress.getLocalHost().getHostAddress();
         String[] splitIp = ip.split("\\.");
         subnet = String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }

@@ -4,8 +4,11 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * The NodeServer Class listens for incoming Node connections and assigns them a new NodeConnection.
@@ -18,26 +21,19 @@ import java.net.ServerSocket;
  */
 public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
-    private static final int DEFAULT_PORT = 420;
-    private final ServerSocket socket;
+    public static final int DEFAULT_PORT = 420;
+    private ServerSocket socket;
+    private NodeManager nodeManager;
+    private NodeHealthConnection nodeHealthConnection;
 
-    /**
-     * Create a new NodeServer with a port to listen on.
-     *
-     * @throws IOException if port binding fails
-     */
-    protected NodeServer() throws IOException {
-        this(new ServerSocket(DEFAULT_PORT));
-    }
-
-    /**
-     * Create a new NodeServer with a port to listen on.
-     *
-     * @param port port number to bound socket to
-     * @throws IOException if port binding fails
-     */
-    protected NodeServer(int port) throws IOException {
-        this(new ServerSocket(port));
+    public NodeServer() {
+        //this.nodeHealthConnection = nodeHealthConnection;
+        try {
+            socket = new ServerSocket(DEFAULT_PORT);
+        } catch (IOException e) {
+            System.out.println("IOException handled from ServerSocket");
+        }
+        this.start();
     }
 
     /**
@@ -49,12 +45,42 @@ public class NodeServer extends Threaded {
     protected NodeServer(ServerSocket socket) throws NullPointerException {
         if (socket == null) throw new NullPointerException("ServerSocket must not be null");
         this.socket = socket;
-        this.start();
+    }
+
+    /**
+     * Put to listen in order to connect with the client.
+     */
+    private void startConnection() {
+        try {
+            Socket socket = this.socket.accept();
+            System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
+            DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
+            String mensaje = flujoEntrada.readUTF();
+            String clientIp = socket.getInetAddress().getHostAddress();
+            if("Yes".equals(mensaje)){
+                if(!this.nodeManager.nodeInHash(clientIp)) {
+                    System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);
+                    this.nodeManager.addNewPlayer(clientIp);
+                }
+            }else if("DummyTask maybe".equals(mensaje)){
+                DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
+                dataOutputStream.writeUTF("Yes");
+                dataOutputStream.close();
+            }
+            flujoEntrada.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println("Problema en startConnection()");
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
         try {
+            while (this.run) {
+                this.startConnection();
+            }
         } catch (Exception e) {
             log.error("ServerSocket thread crashed: ", e);
         } finally {

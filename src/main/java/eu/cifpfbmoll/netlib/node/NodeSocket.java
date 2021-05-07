@@ -26,7 +26,7 @@ public class NodeSocket {
      * @param port port number
      * @throws IOException if the assignment of InputStream/OutputStream fails
      */
-    private NodeSocket(String host, int port) throws IOException {
+    public NodeSocket(String host, int port) throws IOException {
         this(new Socket(host, port));
     }
 
