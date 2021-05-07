@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 
 import java.util.HashMap;
@@ -20,6 +21,13 @@ public class NodeManager {
      */
     public NodeManager(PacketManager manager) {
         this.manager = manager;
+    }
+
+    /**
+     * Create a NodeManager with default values.
+     */
+    public NodeManager() {
+        this.manager = new PacketManager();
     }
 
     /**
@@ -89,6 +97,28 @@ public class NodeManager {
      */
     public void remove(Integer id) {
         this.nodes.remove(id);
+    }
+
+    /**
+     * Add a new Packet Handler for Packet type.
+     *
+     * @param clazz   object class to handle
+     * @param handler packet handler to handle a Packet type
+     * @throws NullPointerException     if object's class or handler are null
+     * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
+     * @see PacketHandler
+     */
+    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
+        this.manager.add(clazz, handler);
+    }
+
+    /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param type packet type to remove
+     */
+    public void remove(String type) {
+        this.manager.remove(type);
     }
 
     /**

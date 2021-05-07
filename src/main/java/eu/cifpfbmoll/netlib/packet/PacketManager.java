@@ -54,6 +54,19 @@ public class PacketManager {
     }
 
     /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param clazz class of the packet type to remove
+     */
+    public void remove(Class<?> clazz) {
+        if (clazz == null) return;
+        PacketType packetType = clazz.getAnnotation(PacketType.class);
+        if (packetType == null) return;
+        String type = Packet.formatType(packetType.value());
+        remove(type);
+    }
+
+    /**
      * Process a packet using its Packet type handler.
      *
      * @param packet packet to process
