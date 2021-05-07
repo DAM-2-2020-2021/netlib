@@ -107,7 +107,7 @@ public class PacketParser {
     public TypeInfo getTypeInfo(Class<?> type) {
         for (Class<?> key : types.keySet())
             if (key.isAssignableFrom(type)) return types.get(key);
-        throw new IllegalArgumentException("Unsupported field type: " + type.getSimpleName());
+        throw new IllegalArgumentException(String.format("'%s' type is not supported as a PacketAttribute.", type.getSimpleName()));
     }
 
     /**
@@ -122,17 +122,6 @@ public class PacketParser {
         } catch (IllegalArgumentException e) {
             return false;
         }
-    }
-
-    /**
-     * Get the correct format of type header field.
-     *
-     * <p>Checks for correct length and appends default values if needed.</p>
-     *
-     * @return corrected Packet type format
-     */
-    public static String formatPacketType(String type) {
-        return Packet.formatType(type);
     }
 
     /**

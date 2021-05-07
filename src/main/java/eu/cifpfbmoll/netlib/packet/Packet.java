@@ -11,7 +11,7 @@ import java.util.Arrays;
  *
  * <p>Instances of this Class must be created using the Constructor Factory Method</p>
  */
-public class Packet implements PacketObject {
+public class Packet {
     public static final Charset CHARSET_ENCODING = StandardCharsets.UTF_8;
     public static final byte DEFAULT_TYPE_VALUE = 0;
     public static final int DEFAULT_TTL_VALUE = 32;
@@ -119,7 +119,6 @@ public class Packet implements PacketObject {
         return PACKET_TYPE_SIZE + PACKET_TTL_SIZE + PACKET_ID_SIZE * 3 + this.data.length;
     }
 
-    @Override
     public void load(byte[] data) {
         byte[] ptype = Arrays.copyOfRange(data, 0, PACKET_TYPE_SIZE);
         this.type = new String(ptype, CHARSET_ENCODING);
@@ -131,7 +130,6 @@ public class Packet implements PacketObject {
         this.data = Arrays.copyOfRange(data, index, data.length);
     }
 
-    @Override
     public byte[] dump() {
         byte[] bytes = new byte[this.size()];
         byte[] str = this.type.getBytes(CHARSET_ENCODING);
