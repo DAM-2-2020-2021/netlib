@@ -1,5 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.annotation.PacketType;
+import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 
@@ -119,6 +121,15 @@ public class NodeManager {
      */
     public void remove(String type) {
         this.manager.remove(type);
+    }
+
+    /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param clazz class of the packet type to remove
+     */
+    public void remove(Class<?> clazz) {
+        this.manager.remove(clazz);
     }
 
     /**
