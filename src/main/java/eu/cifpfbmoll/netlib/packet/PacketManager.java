@@ -17,25 +17,29 @@ import java.util.Map;
  */
 public class PacketManager {
     private static final Logger log = LoggerFactory.getLogger(PacketManager.class);
-    private final Map<String, PacketHandler> handlers = new HashMap<>();
-    private final Map<String, Class<? extends PacketObject>> types = new HashMap<>();
+    private final Map<String, PacketHandler<?>> handlers = new HashMap<>();
+    private final Map<String, Class<?>> types = new HashMap<>();
 
     /**
      * Add a new Packet Handler for Packet type.
      *
-     * @param objectClass object class to handle
-     * @param handler     packet handler to handle a Packet type
+     * @param clazz   object class to handle
+     * @param handler packet handler to handle a Packet type
+     * @throws NullPointerException     if object's class or handler are null
+     * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
      * @see PacketHandler
      */
-    public void add(Class<? extends PacketObject> objectClass, PacketHandler handler) {
-        if (objectClass == null || handler == null) return;
-        PacketType packetType = objectClass.getAnnotation(PacketType.class);
-        if (packetType == null) return;
+    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
+        if (clazz == null || handler == null)
+            throw new NullPointerException("Object's class and PacketHandler cannot be null.");
+        PacketType packetType = clazz.getAnnotation(PacketType.class);
+        if (packetType == null)
+            throw new IllegalArgumentException(String.format("Missing @PacketType annotation in class '%s'.", clazz.getSimpleName()));
         String type = Packet.formatType(packetType.value());
-        if (!this.handlers.containsKey(type) && !this.types.containsKey(type)) {
-            this.handlers.put(type, handler);
-            this.types.put(type, objectClass);
-        }
+        if (this.handlers.containsKey(type) || this.types.containsKey(type))
+            throw new IllegalArgumentException(String.format("PacketType '%s' is already registered.", type));
+        this.handlers.put(type, handler);
+        this.types.put(type, clazz);
     }
 
     /**
@@ -46,6 +50,20 @@ public class PacketManager {
     public void remove(String type) {
         String packetType = Packet.formatType(type);
         this.handlers.remove(packetType);
+        this.types.remove(packetType);
+    }
+
+    /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param clazz class of the packet type to remove
+     */
+    public void remove(Class<?> clazz) {
+        if (clazz == null) return;
+        PacketType packetType = clazz.getAnnotation(PacketType.class);
+        if (packetType == null) return;
+        String type = Packet.formatType(packetType.value());
+        remove(type);
     }
 
     /**
@@ -55,15 +73,16 @@ public class PacketManager {
      */
     public void process(Packet packet) {
         if (packet == null) return;
-        Class<? extends PacketObject> type = this.types.get(packet.type);
+        Class<?> type = this.types.get(packet.type);
         PacketHandler handler = this.handlers.get(packet.type);
         if (handler != null) {
             try {
-                PacketObject object = type.getConstructor().newInstance();
-                object.load(packet.data);
-                handler.handle(object);
+                Object object = type.getConstructor().newInstance();
+                PacketParser parser = PacketParser.getInstance();
+                parser.deserialize(object, packet.data);
+                handler.handle(packet.src, object);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("failed to process packet: ", e);
             }
         }
     }

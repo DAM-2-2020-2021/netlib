@@ -11,13 +11,13 @@ import java.util.Arrays;
  *
  * <p>Instances of this Class must be created using the Constructor Factory Method</p>
  */
-public class Packet implements PacketObject {
-    private static final Charset CHARSET_ENCODING = StandardCharsets.UTF_8;
-    private static final byte DEFAULT_TYPE_VALUE = 0;
-    private static final int DEFAULT_TTL_VALUE = 32;
-    private static final int PACKET_TYPE_SIZE = 4;
-    private static final int PACKET_TTL_SIZE = 1;
-    private static final int PACKET_ID_SIZE = 1;
+public class Packet {
+    public static final Charset CHARSET_ENCODING = StandardCharsets.UTF_8;
+    public static final byte DEFAULT_TYPE_VALUE = 0;
+    public static final int DEFAULT_TTL_VALUE = 32;
+    public static final int PACKET_TYPE_SIZE = 4;
+    public static final int PACKET_TTL_SIZE = 1;
+    public static final int PACKET_ID_SIZE = 1;
 
     public String type;
     public byte ttl;
@@ -119,19 +119,17 @@ public class Packet implements PacketObject {
         return PACKET_TYPE_SIZE + PACKET_TTL_SIZE + PACKET_ID_SIZE * 3 + this.data.length;
     }
 
-    @Override
-    public void load(byte[] bytes) {
-        byte[] ptype = Arrays.copyOfRange(bytes, 0, PACKET_TYPE_SIZE);
+    public void load(byte[] data) {
+        byte[] ptype = Arrays.copyOfRange(data, 0, PACKET_TYPE_SIZE);
         this.type = new String(ptype, CHARSET_ENCODING);
         int index = PACKET_TYPE_SIZE;
-        this.ttl = bytes[index++];
-        this.src = bytes[index++];
-        this.dst = bytes[index++];
-        this.resend = bytes[index++];
-        this.data = Arrays.copyOfRange(bytes, index, bytes.length);
+        this.ttl = data[index++];
+        this.src = data[index++];
+        this.dst = data[index++];
+        this.resend = data[index++];
+        this.data = Arrays.copyOfRange(data, index, data.length);
     }
 
-    @Override
     public byte[] dump() {
         byte[] bytes = new byte[this.size()];
         byte[] str = this.type.getBytes(CHARSET_ENCODING);
@@ -148,6 +146,13 @@ public class Packet implements PacketObject {
 
     @Override
     public String toString() {
-        return String.format("type: [%s]; ttl: [%d]; src: [%d]; dst: [%d]; resend: [%d]", this.type, this.ttl, this.src, this.dst, this.resend);
+        return "Packet{" +
+                "type='" + type + '\'' +
+                ", ttl=" + ttl +
+                ", src=" + src +
+                ", dst=" + dst +
+                ", resend=" + resend +
+                ", data=" + Arrays.toString(data) +
+                '}';
     }
 }
