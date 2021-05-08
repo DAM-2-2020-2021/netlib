@@ -154,15 +154,16 @@ public class Packet {
     }
 
     /**
-     * Add resender id to packet header.
+     * Add resenders id to packet header.
      *
      * @param id new resender id
      */
-    public void addResender(Integer id) {
+    public void addResender(Integer... id) {
         byte[] tmp = this.resend.clone();
-        this.resend = new byte[this.resend.length + PACKET_ID_SIZE];
+        this.resend = new byte[this.resend.length + PACKET_ID_SIZE * id.length];
         System.arraycopy(tmp, 0, this.resend, 0, tmp.length);
-        this.resend[this.resend.length - 1] = id.byteValue();
+        for (int i = 0; i < id.length; i++)
+            this.resend[tmp.length + i] = id[i].byteValue();
     }
 
     public byte[] dump() {
