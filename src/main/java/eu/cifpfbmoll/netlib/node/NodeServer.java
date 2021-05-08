@@ -52,12 +52,14 @@ public class NodeServer extends Threaded {
      */
     private void startConnection() {
         try {
+            // TODO: use node socket instead
+            // TODO: create node connection on client connection
             Socket socket = this.socket.accept();
             System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
             DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
             String mensaje = flujoEntrada.readUTF();
             String clientIp = socket.getInetAddress().getHostAddress();
-            // TODO: Create Handshake packets
+            // TODO: use internal packets to check for nodes
             if("Yes".equals(mensaje)){
                 if(!this.nodeManager.nodeInHash(clientIp)) {
                     System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);

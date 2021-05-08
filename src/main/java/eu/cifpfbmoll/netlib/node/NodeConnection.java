@@ -3,8 +3,10 @@ package eu.cifpfbmoll.netlib.node;
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
-import eu.cifpfbmoll.netlib.packet.PacketObject;
+import eu.cifpfbmoll.netlib.packet.PacketParser;
 import eu.cifpfbmoll.netlib.util.Threaded;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,17 +20,18 @@ import java.nio.charset.StandardCharsets;
  * @see NodeSocket
  */
 public class NodeConnection extends Threaded {
+    private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
     private final Node node;
     private final NodeSocket socket;
-    private final NodeHealthConnection nodeHealthConnection;
-   // private final PacketManager manager;
+    private final NodeHealthConnection nodeHealthConnection = new NodeHealthConnection();
+    private final PacketManager packetManager;
 
-    public NodeConnection(Node node, NodeSocket socket, NodeHealthConnection nodeHealthConnection/*PacketManager manager*/) {
+    // TODO: assign packet manager
+    public NodeConnection(Node node, NodeSocket socket, PacketManager packetManager) {
         // TODO: Create nodehealthconnection automatically
         this.node = node;
         this.socket = socket;
-        this.nodeHealthConnection=nodeHealthConnection;
-        //this.manager = manager;
+        this.packetManager = packetManager;
         this.start();
     }
 
@@ -41,14 +44,14 @@ public class NodeConnection extends Threaded {
         return node;
     }
 
-    public NodeSocket getNodeSocket(){
+    public NodeSocket getNodeSocket() {
         return socket;
     }
 
 
-    /*public PacketManager getManager() {
-        return manager;
-    }*/
+    public PacketManager getManager() {
+        return this.packetManager;
+    }
 
     /**
      * Send a PacketObject to the connected node.
@@ -56,23 +59,26 @@ public class NodeConnection extends Threaded {
      * @param object PacketObject to send
      * @return true if send was successful, false otherwise
      */
-    public boolean send(PacketObject object) {
+    public boolean send(Object object) {
         if (object == null) return false;
+        Class<?> clazz = object.getClass();
         try {
-            PacketType packetType = object.getClass().getAnnotation(PacketType.class);
+            PacketType packetType = clazz.getAnnotation(PacketType.class);
             if (packetType == null) return false;
             String type = Packet.formatType(packetType.value());
 
             // TODO: implement packet src and dst ids
-            Packet packet = Packet.create(type, 0, 0, object.dump());
+            PacketParser parser = PacketParser.getInstance();
+            Packet packet = Packet.create(type, 0, this.node.getId(), parser.serialize(object));
             this.socket.write(packet.dump());
             return true;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error(String.format("failed to send object of type '%s': ", clazz.getSimpleName()), e);
             return false;
         }
     }
 
-    private void identifyConnections(){
+    private void identifyConnections() {
         try {
             this.socket.write("DummyTask maybe".getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {

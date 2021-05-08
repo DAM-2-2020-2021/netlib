@@ -1,5 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.packet.PacketHandler;
+import eu.cifpfbmoll.netlib.packet.PacketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,53 +19,51 @@ import java.util.Map;
  * Discover and manage nodes in the network and register
  */
 public class NodeManager {
-    private static int id=0;
+    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
+    private static final int CALL_TIMEOUT = 1000;
     private final Map<Integer, String> nodes = new HashMap<>();
-    //private final PacketManager manager;
+    private final PacketManager packetManager;
+    private final int id = 0;
     private String ip;
     private String subnet;
-    private static final int CALL_TIMEOUT = 1000;
     private NodeServer nodeServer;
     private NodeHealthConnection nodeHealthConnection;
-    public List<NodeConnection> nodeConnectionsList=new ArrayList<>();
-    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
     private List<String> ips;
-
-   /* public NodeManager(PacketManager manager) {
-        this.manager = manager;
-    }*/
+    private List<NodeConnection> nodeConnectionsList = new ArrayList<>();
 
     public NodeManager(String ip) {
         this.ip = ip;
         this.getCurrentSubnet();
         this.discover();
         //this.assignNodes();
-        this.nodeServer=new NodeServer();
+        this.nodeServer = new NodeServer();
+        this.packetManager = new PacketManager();
         this.identifyConnections();
         //this.nodeHealthConnection=new NodeHealthConnection();
         //this.nodeServer=new NodeServer(this.nodeHealthConnection);
     }
 
-    public boolean nodeInHash(String ip){
+    public boolean nodeInHash(String ip) {
         return nodes.containsValue(ip);
     }
 
-    public void addNewPlayer(String ip){
+    // TODO: change parameter to NodeConnection
+    public void addNewPlayer(String ip) {
         try {
-            this.nodeConnectionsList.add(new NodeConnection(new Node(id,ip),new NodeSocket(ip, NodeServer.DEFAULT_PORT),new NodeHealthConnection()));
-            this.put(id,ip);
+            this.nodeConnectionsList.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this.packetManager));
+            this.nodes.put(id, ip);
         } catch (IOException e) {
             System.out.println("Error creating socket in NodeManager");
         }
         System.out.println("new player added");
-        id++;
+        //id++;
     }
 
     private void identifyConnections() {
         for (int i = 0; i < ips.size(); i++) {
             try {
-                Socket socket = new Socket(ips.get(i),NodeServer.DEFAULT_PORT);
-                DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
+                Socket socket = new Socket(ips.get(i), NodeServer.DEFAULT_PORT);
+                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 dataOutputStream.writeUTF("DummyTask maybe");
                 dataOutputStream.close();
                 socket.close();
@@ -71,6 +71,16 @@ public class NodeManager {
                 System.out.println("IOException creating a Socket.");
             }
         }
+    }
+
+    /**
+     * Create a new NodeServer and start listening for connections.
+     *
+     * @param port listening port
+     * @return NodeServer instance
+     */
+    public static NodeServer startServer(Integer port) {
+        return null;
     }
 
     /**
@@ -129,6 +139,38 @@ public class NodeManager {
      */
     public void remove(Integer id) {
         this.nodes.remove(id);
+    }
+
+    /**
+     * Add a new Packet Handler for Packet type.
+     *
+     * @param clazz   object class to handle
+     * @param handler packet handler to handle a Packet type
+     * @throws NullPointerException     if object's class or handler are null
+     * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
+     * @see PacketHandler
+     */
+    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws
+            NullPointerException, IllegalArgumentException {
+        this.packetManager.add(clazz, handler);
+    }
+
+    /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param type packet type to remove
+     */
+    public void remove(String type) {
+        this.packetManager.remove(type);
+    }
+
+    /**
+     * Removed Packet Handler for Packet type.
+     *
+     * @param clazz class of the packet type to remove
+     */
+    public void remove(Class<?> clazz) {
+        this.packetManager.remove(clazz);
     }
 
     /**
