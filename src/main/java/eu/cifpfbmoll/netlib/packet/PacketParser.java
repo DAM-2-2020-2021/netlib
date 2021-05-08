@@ -5,15 +5,22 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Parse {@link eu.cifpfbmoll.netlib.annotation.PacketType} classes and serialize/deserialize their PacketAttributes.
  */
 public class PacketParser {
+    private static final int SIZE = 1;
+    private static final int BYTE_SIZE = 1;
+    private static final int SHORT_SIZE = 2;
+    private static final int INT_SIZE = 4;
+    private static final int LONG_SIZE = 8;
+    private static final int FLOAT_SIZE = 4;
+    private static final int DOUBLE_SIZE = 8;
+    private static final int CHAR_SIZE = 2;
+    private static final int STRING_SIZE = 1;
+
     /**
      * Dynamically get object fields' size.
      */
@@ -62,65 +69,191 @@ public class PacketParser {
 
     public PacketParser() {
         this.types.put(Byte.TYPE, new TypeInfo(
-                (object, field) -> 1,
+                (object, field) -> BYTE_SIZE,
                 (object, field, bb) -> bb.put(field.getByte(object)),
                 (object, field, bb) -> field.setByte(object, bb.get())));
         this.types.put(Byte.class, new TypeInfo(
-                (object, field) -> 1,
+                (object, field) -> BYTE_SIZE,
                 (object, field, bb) -> bb.put((byte) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.get())));
+        this.types.put(byte[].class, new TypeInfo(
+                (object, field) -> {
+                    byte[] arr = (byte[]) field.get(object);
+                    return arr.length * BYTE_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    byte[] arr = (byte[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (byte b : arr) bb.put(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    byte[] arr = new byte[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.get();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Short.TYPE, new TypeInfo(
-                (object, field) -> 2,
+                (object, field) -> SHORT_SIZE,
                 (object, field, bb) -> bb.putShort(field.getShort(object)),
                 (object, field, bb) -> field.set(object, bb.getShort())));
         this.types.put(Short.class, new TypeInfo(
-                (object, field) -> 2,
+                (object, field) -> SHORT_SIZE,
                 (object, field, bb) -> bb.putShort((short) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getShort())));
+        this.types.put(short[].class, new TypeInfo(
+                (object, field) -> {
+                    short[] arr = (short[]) field.get(object);
+                    return arr.length * SHORT_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    short[] arr = (short[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (short b : arr) bb.putShort(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    short[] arr = new short[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getShort();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Integer.TYPE, new TypeInfo(
-                (object, field) -> 4,
+                (object, field) -> INT_SIZE,
                 (object, field, bb) -> bb.putInt(field.getInt(object)),
                 (object, field, bb) -> field.set(object, bb.getInt())));
         this.types.put(Integer.class, new TypeInfo(
-                (object, field) -> 4,
+                (object, field) -> INT_SIZE,
                 (object, field, bb) -> bb.putInt((int) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getInt())));
+        this.types.put(int[].class, new TypeInfo(
+                (object, field) -> {
+                    int[] arr = (int[]) field.get(object);
+                    return arr.length * INT_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    int[] arr = (int[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (int b : arr) bb.putInt(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    int[] arr = new int[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getInt();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Long.TYPE, new TypeInfo(
-                (object, field) -> 8,
+                (object, field) -> LONG_SIZE,
                 (object, field, bb) -> bb.putLong(field.getLong(object)),
                 (object, field, bb) -> field.set(object, bb.getLong())));
         this.types.put(Long.class, new TypeInfo(
-                (object, field) -> 8,
+                (object, field) -> LONG_SIZE,
                 (object, field, bb) -> bb.putLong((long) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getLong())));
+        this.types.put(long[].class, new TypeInfo(
+                (object, field) -> {
+                    long[] arr = (long[]) field.get(object);
+                    return arr.length * LONG_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    long[] arr = (long[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (long b : arr) bb.putLong(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    long[] arr = new long[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getLong();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Float.TYPE, new TypeInfo(
-                (object, field) -> 4,
+                (object, field) -> FLOAT_SIZE,
                 (object, field, bb) -> bb.putFloat(field.getFloat(object)),
                 (object, field, bb) -> field.set(object, bb.getFloat())));
         this.types.put(Float.class, new TypeInfo(
-                (object, field) -> 4,
+                (object, field) -> FLOAT_SIZE,
                 (object, field, bb) -> bb.putFloat((float) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getFloat())));
+        this.types.put(float[].class, new TypeInfo(
+                (object, field) -> {
+                    float[] arr = (float[]) field.get(object);
+                    return arr.length * FLOAT_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    float[] arr = (float[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (float b : arr) bb.putFloat(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    float[] arr = new float[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getFloat();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Double.TYPE, new TypeInfo(
-                (object, field) -> 8,
+                (object, field) -> DOUBLE_SIZE,
                 (object, field, bb) -> bb.putDouble(field.getDouble(object)),
                 (object, field, bb) -> field.set(object, bb.getDouble())));
         this.types.put(Double.class, new TypeInfo(
-                (object, field) -> 8,
+                (object, field) -> DOUBLE_SIZE,
                 (object, field, bb) -> bb.putDouble((double) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getDouble())));
+        this.types.put(double[].class, new TypeInfo(
+                (object, field) -> {
+                    double[] arr = (double[]) field.get(object);
+                    return arr.length * DOUBLE_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    double[] arr = (double[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (double b : arr) bb.putDouble(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    double[] arr = new double[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getDouble();
+                    field.set(object, arr);
+                }));
+
         this.types.put(Character.TYPE, new TypeInfo(
-                (object, field) -> 2,
+                (object, field) -> CHAR_SIZE,
                 (object, field, bb) -> bb.putChar(field.getChar(object)),
                 (object, field, bb) -> field.set(object, bb.getChar())));
         this.types.put(Character.class, new TypeInfo(
-                (object, field) -> 2,
+                (object, field) -> CHAR_SIZE,
                 (object, field, bb) -> bb.putChar((char) field.get(object)),
                 (object, field, bb) -> field.set(object, bb.getChar())));
+        this.types.put(char[].class, new TypeInfo(
+                (object, field) -> {
+                    char[] arr = (char[]) field.get(object);
+                    return arr.length * CHAR_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    char[] arr = (char[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (char b : arr) bb.putChar(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    char[] arr = new char[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.getChar();
+                    field.set(object, arr);
+                }));
+
         this.types.put(String.class, new TypeInfo(
                 (object, field) -> {
                     String str = (String) field.get(object);
-                    return str.length() + 1;
+                    return str.length() * STRING_SIZE + SIZE;
                 },
                 (object, field, bb) -> {
                     String str = (String) field.get(object);
@@ -128,13 +261,14 @@ public class PacketParser {
                     bb.put((byte) bytes.length);
                     for (byte b : bytes)
                         bb.put(b);
-                }, (object, field, bb) -> {
-            byte size = bb.get();
-            byte[] bytes = new byte[size];
-            for (int i = 0; i < size; i++)
-                bytes[i] = bb.get();
-            field.set(object, new String(bytes, Packet.CHARSET_ENCODING));
-        }));
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    byte[] bytes = new byte[size];
+                    for (int i = 0; i < size; i++)
+                        bytes[i] = bb.get();
+                    field.set(object, new String(bytes, Packet.CHARSET_ENCODING));
+                }));
     }
 
     /**
