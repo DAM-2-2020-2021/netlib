@@ -51,47 +51,42 @@ public class NodeServer extends Threaded {
      * Put to listen in order to connect with the client.
      */
     private void startConnection() {
-        try {
-            // TODO: use node socket instead
-            // TODO: create node connection on client connection
-            Socket socket = this.socket.accept();
-            System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
-            DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
-            String mensaje = flujoEntrada.readUTF();
-            String clientIp = socket.getInetAddress().getHostAddress();
-            // TODO: use internal packets to check for nodes
-            if("Yes".equals(mensaje)){
-                if(!this.nodeManager.nodeInHash(clientIp)) {
-                    System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);
-                    this.nodeManager.addNewPlayer(clientIp);
-                }
-            }else if("DummyTask maybe".equals(mensaje)){
-                DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
-                dataOutputStream.writeUTF("Yes");
-                dataOutputStream.close();
-            }
-            flujoEntrada.close();
-            socket.close();
-        } catch (Exception e) {
-            System.out.println("Problema en startConnection()");
-            e.printStackTrace();
-        }
+
     }
 
     @Override
     public void run() {
-        try {
-            while (this.run) {
-                this.startConnection();
-            }
-        } catch (Exception e) {
-            log.error("ServerSocket thread crashed: ", e);
-        } finally {
+        while (this.run) {
             try {
-                this.socket.close();
+                // TODO: use node socket instead
+                // TODO: create node connection on client connection
+                Socket socket = this.socket.accept();
+                System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
+                DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
+                String mensaje = flujoEntrada.readUTF();
+                String clientIp = socket.getInetAddress().getHostAddress();
+                // TODO: use internal packets to check for nodes
+                if("Yes".equals(mensaje)){
+                    if(!this.nodeManager.nodeInHash(clientIp)) {
+                        System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);
+                        this.nodeManager.addNewPlayer(clientIp); // nodeconnection
+                    }
+                }else if("DummyTask maybe".equals(mensaje)){
+                    DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
+                    dataOutputStream.writeUTF("Yes");
+                    dataOutputStream.close();
+                }
+                flujoEntrada.close();
+                socket.close();
             } catch (Exception e) {
-                log.error("failed to close ServerSocket: ", e);
+                System.out.println("Problema en startConnection()");
+                e.printStackTrace();
             }
+        }
+        try {
+            this.socket.close();
+        } catch (Exception e) {
+            log.error("failed to close ServerSocket: ", e);
         }
     }
 }

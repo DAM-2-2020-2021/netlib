@@ -36,7 +36,7 @@ public class NodeSocket {
      * @param socket socket to create NodeSocket from
      * @throws IOException if the assignment of InputStream/OutputStream fails
      */
-    private NodeSocket(Socket socket) throws IOException {
+    public NodeSocket(Socket socket) throws IOException {
         this.socket = socket;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();

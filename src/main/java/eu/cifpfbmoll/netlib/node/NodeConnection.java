@@ -88,6 +88,7 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
+        // TODO: thread routine (rebre packets)
         this.identifyConnections();
     }
 }

@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import org.slf4j.Logger;
@@ -41,6 +42,10 @@ public class NodeManager {
         this.identifyConnections();
         //this.nodeHealthConnection=new NodeHealthConnection();
         //this.nodeServer=new NodeServer(this.nodeHealthConnection);
+
+        // ADD PACKET TYPES
+        add(ACKPacket.class, (id, ack) -> {
+        });
     }
 
     public boolean nodeInHash(String ip) {

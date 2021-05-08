@@ -52,6 +52,5 @@ public class NodeHealthConnection extends Threaded {
 
     @Override
     public void run() {
-
     }
 }
