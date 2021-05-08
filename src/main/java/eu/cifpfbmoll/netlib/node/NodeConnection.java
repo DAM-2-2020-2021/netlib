@@ -24,6 +24,7 @@ public class NodeConnection extends Threaded {
    // private final PacketManager manager;
 
     public NodeConnection(Node node, NodeSocket socket, NodeHealthConnection nodeHealthConnection/*PacketManager manager*/) {
+        // TODO: Create nodehealthconnection automatically
         this.node = node;
         this.socket = socket;
         this.nodeHealthConnection=nodeHealthConnection;

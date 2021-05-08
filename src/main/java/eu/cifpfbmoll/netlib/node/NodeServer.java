@@ -57,6 +57,7 @@ public class NodeServer extends Threaded {
             DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
             String mensaje = flujoEntrada.readUTF();
             String clientIp = socket.getInetAddress().getHostAddress();
+            // TODO: Create Handshake packets
             if("Yes".equals(mensaje)){
                 if(!this.nodeManager.nodeInHash(clientIp)) {
                     System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);

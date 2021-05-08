@@ -25,7 +25,7 @@ public class NodeManager {
     private static final int CALL_TIMEOUT = 1000;
     private NodeServer nodeServer;
     private NodeHealthConnection nodeHealthConnection;
-    public ArrayList<NodeConnection> nodeConnectionsList=new ArrayList<>();
+    public List<NodeConnection> nodeConnectionsList=new ArrayList<>();
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
     private List<String> ips;
 
@@ -80,6 +80,8 @@ public class NodeManager {
      * @return NodeConnection if connection was successful, null otherwise.
      */
     public static NodeConnection connect(Integer id) {
+        // get ip for id
+        // call connect(ip, port)
         return null;
     }
 
@@ -91,6 +93,7 @@ public class NodeManager {
      * @return NodeConnection if connection was successful, null otherwise.
      */
     public static NodeConnection connect(String ip, Integer port) {
+        // TODO: add nodeconnection to list
         return null;
     }
 
@@ -136,6 +139,7 @@ public class NodeManager {
      */
     public void discover() {
         ips = new ArrayList<>();
+        // TODO: Implement with Runner class
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             try {
@@ -143,6 +147,12 @@ public class NodeManager {
                     ips.add(host);
                     System.out.println(host + " is reachable");
                     ips.add(host);
+                    // TODO: Handshake protocol
+                    // Create NodeConnection
+                    // Send HELLO packet
+                    // Receive HELLO response with node id
+                    // Add node id with ip to hashmap
+                    // Close NodeConnection
                 }
             } catch (UnknownHostException e) {
                 log.error("UnknownHostException when calling a device.");
