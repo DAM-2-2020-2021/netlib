@@ -185,17 +185,19 @@ public class NodeManager {
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             try {
-                if (InetAddress.getByName(host).isReachable(CALL_TIMEOUT)) {
-                    ips.add(host);
-                    System.out.println(host + " is reachable");
-                    // TODO: Handshake protocol
-                    // Create NodeConnection
-                    //Testing if is dummyTask player
-                    this.identifyConnections(host);
-                    // Send HELLO packet
-                    // Receive HELLO response with node id
-                    // Add node id with ip to hashmap
-                    // Close NodeConnection
+                if(!host.equals(this.ip)) {
+                    if (InetAddress.getByName(host).isReachable(CALL_TIMEOUT)) {
+                        ips.add(host);
+                        System.out.println(host + " is reachable");
+                        // TODO: Handshake protocol
+                        // Create NodeConnection
+                        //Testing if is dummyTask player
+                        this.identifyConnections(host);
+                        // Send HELLO packet
+                        // Receive HELLO response with node id
+                        // Add node id with ip to hashmap
+                        // Close NodeConnection
+                    }
                 }
             } catch (UnknownHostException e) {
                 log.error("UnknownHostException when calling a device.");
