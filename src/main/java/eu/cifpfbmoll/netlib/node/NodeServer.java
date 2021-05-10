@@ -24,10 +24,9 @@ public class NodeServer extends Threaded {
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
     private NodeManager nodeManager;
-    private NodeHealthConnection nodeHealthConnection;
 
-    public NodeServer() {
-        //this.nodeHealthConnection = nodeHealthConnection;
+    public NodeServer(NodeManager nodeManager) {
+        this.nodeManager=nodeManager;
         try {
             socket = new ServerSocket(DEFAULT_PORT);
         } catch (IOException e) {
@@ -63,23 +62,23 @@ public class NodeServer extends Threaded {
                 Socket socket = this.socket.accept();
                 System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
                 DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
-                String mensaje = flujoEntrada.readUTF();
+                String message = flujoEntrada.readUTF();
                 String clientIp = socket.getInetAddress().getHostAddress();
                 // TODO: use internal packets to check for nodes
-                if("Yes".equals(mensaje)){
+                if("Yes".equals(message)){
                     if(!this.nodeManager.nodeInHash(clientIp)) {
                         System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);
                         this.nodeManager.addNewPlayer(clientIp); // nodeconnection
                     }
-                }else if("DummyTask maybe".equals(mensaje)){
+                }else if("DummyTask maybe".equals(message)){
                     DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
                     dataOutputStream.writeUTF("Yes");
-                    dataOutputStream.close();
+                    dataOutputStream.flush();
                 }
                 flujoEntrada.close();
                 socket.close();
             } catch (Exception e) {
-                System.out.println("Problema en startConnection()");
+                System.out.println("Problem in NodeServer run()");
                 e.printStackTrace();
             }
         }
