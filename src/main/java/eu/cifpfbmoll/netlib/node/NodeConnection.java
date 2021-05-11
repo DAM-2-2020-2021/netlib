@@ -24,7 +24,7 @@ public class NodeConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
     private final Node node;
     private final NodeSocket socket;
-    private final NodeHealthConnection nodeHealthConnection = new NodeHealthConnection();
+    private final NodeHealthConnection nodeHealthConnection = new NodeHealthConnection(this);
     private final PacketManager packetManager;
 
     // TODO: assign packet manager

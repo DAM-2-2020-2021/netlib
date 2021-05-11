@@ -4,6 +4,8 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class NodeHealthConnection extends Threaded {
@@ -12,9 +14,12 @@ public class NodeHealthConnection extends Threaded {
     private boolean acknowledgmentReceived;
     private int communicationAttempts = 5;
     private final int DELAY = 300;
+    private NodeConnection nodeConnection;
 
-    public NodeHealthConnection() {
+    public NodeHealthConnection(NodeConnection nodeConnection) {
         this.healthyConnection=false;
+        this.nodeConnection=nodeConnection;
+        this.start();
     }
 
     private void setAcknowledgmentReceived() {
@@ -25,32 +30,34 @@ public class NodeHealthConnection extends Threaded {
     /**
      * Send an inputStream in order to verify if connection is OK.
      */
-    public void sendAcknowledgment() {
-
+    private void sendAcknowledgment() {
+        try {
+            DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
+            outputStream.writeUTF("Can you hear me?");
+            outputStream.flush();
+            }catch (IOException e){
+            System.out.println("IOException sending acknowledgment");
+        }
     }
 
     /**
      * Send an acknowledgment in order to check communication state. If acknowledgment does not arrive in 5 retries
      * it will close the Sockets.
      */
-    /*private void tryFeedback() {
-        try {
-            acknowledgmentReceived = false;
-            this.sendAcknowledgment();
-            for (int i = 0; i < communicationAttempts && !acknowledgmentReceived; i++) {
-                Thread.sleep(DELAY);
-            }
-            if (!acknowledgmentReceived) {
-               nodeConnection.getNodeSocket().close();
+    private void getAcknowledgement(){
+        try{
+            DataInputStream inputStream=new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
+            String message=inputStream.readUTF();
+            if("Can you hear me?".equals(message)){
+                this.acknowledgmentReceived=true;
             }
         } catch (IOException e) {
-            log.error("IOException closing NodeSocket");
-        } catch (InterruptedException e) {
-            log.error("InterruptedException closing NodeSocket");
+            e.printStackTrace();
         }
-    }*/
+    }
 
     @Override
     public void run() {
+
     }
 }
