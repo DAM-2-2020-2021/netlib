@@ -49,14 +49,19 @@ Note that you must replace `ACCESS_TOKEN` with a GitHub Personal Access Token. C
   </servers>
 </settings>
 ```
-For an Android project you can place the following code inside your project's module `build.gradle` file:
+For an Android project you can place the following code inside your gradle properties file, usually located at `<USER_HOME>/.gradle/gradle.properties`:
+```
+netlib_username=snebotcifpfbmoll
+netlib_password=ACCESS_TOKEN
+```
+Inside your project's module `build.gradle` file:
 ```
 repositories {
     mavenCentral()
     maven {
         credentials {
-            username 'snebotcifpfbmoll'
-            password 'TOKEN_HERE'
+            username "$netlib_username"
+            password "$netlib_password"
         }
         url    'https://maven.pkg.github.com/dam-2-2020-2021/*'
     }
