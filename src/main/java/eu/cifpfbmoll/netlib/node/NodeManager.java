@@ -58,7 +58,7 @@ public class NodeManager {
         try {
             DataInputStream inputStream = new DataInputStream(nodeSocket.getSocket().getInputStream());
             String message = inputStream.readUTF();
-            if ("I am Damn player".equals(message)) {
+            if ("I am Damn player".equals(message) && !this.nodeInHash(nodeSocket.getIp())) {
                 this.addNewPlayer(nodeSocket);
                 this.nodeClients.get(nodeSocket.getIp()).setIdentifiedPlayer(true);
             }
