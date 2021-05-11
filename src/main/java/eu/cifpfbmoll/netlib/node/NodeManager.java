@@ -60,7 +60,8 @@ public class NodeManager {
             String message = inputStream.readUTF();
             if ("I am Damn player".equals(message) && !this.nodeInHash(nodeSocket.getIp())) {
                 this.addNewPlayer(nodeSocket);
-                this.nodeClients.get(nodeSocket.getIp()).setIdentifiedPlayer(true);
+                NodeClient nodeClient=this.nodeClients.get(nodeSocket.getIp());
+                nodeClient.setIdentifiedPlayer(true);
             }
         } catch (IOException e) {
             e.printStackTrace();
