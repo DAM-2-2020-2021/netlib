@@ -19,6 +19,10 @@ public class NodeSocket {
     private final InputStream inputStream;
     private final OutputStream outputStream;
 
+    public Socket getSocket() {
+        return socket;
+    }
+
     /**
      * Create a new NodeSocket with a host and port.
      *
@@ -51,6 +55,10 @@ public class NodeSocket {
     public void write(byte[] data) throws IOException {
         this.outputStream.write(data);
         this.outputStream.flush();
+    }
+
+    public String getIp(){
+        return this.socket.getInetAddress().getHostAddress();
     }
 
     /**

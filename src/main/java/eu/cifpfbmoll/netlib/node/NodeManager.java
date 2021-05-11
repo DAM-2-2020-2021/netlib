@@ -6,10 +6,9 @@ import eu.cifpfbmoll.netlib.packet.PacketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +20,12 @@ import java.util.Map;
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
-    private static final int CALL_TIMEOUT = 1000;
+    private static final int CALL_TIMEOUT = 700;
     private final Map<Integer, String> nodes = new HashMap<>();
+    private final Map<String, NodeClient> nodeClients = new HashMap<>();
     private final PacketManager packetManager;
     private final int id = 0;
-    private static int counter=0;
+    public static int counter = 0;
     private String ip;
     private String subnet;
     private NodeServer nodeServer;
@@ -36,13 +36,35 @@ public class NodeManager {
     public NodeManager(String ip) {
         this.ip = ip;
         this.getCurrentSubnet();
-        this.nodeServer = new NodeServer(this);
-        this.discover();
         this.packetManager = new PacketManager();
+        this.nodeServer = new NodeServer(this, this.packetManager);
+        this.discover();
+
 
         // ADD PACKET TYPES
         add(ACKPacket.class, (id, ack) -> {
         });
+    }
+
+    public List<String> getIps() {
+        return ips;
+    }
+
+    public void addNewConnection(NodeConnection nodeConnection) {
+        this.nodeConnectionsList.add(nodeConnection);
+    }
+
+    public void identifyPlayer(NodeSocket nodeSocket) {
+        try {
+            DataInputStream inputStream = new DataInputStream(nodeSocket.getSocket().getInputStream());
+            String message = inputStream.readUTF();
+            if ("I am Damn player".equals(message)) {
+                this.addNewPlayer(nodeSocket);
+                this.nodeClients.get(nodeSocket.getIp()).setIdentifiedPlayer(true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean nodeInHash(String ip) {
@@ -50,27 +72,19 @@ public class NodeManager {
     }
 
     // TODO: change parameter to NodeConnection
-    public void addNewPlayer(String ip) {
-        try {
-            this.nodeConnectionsList.add(new NodeConnection(new Node(counter, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this.packetManager));
-            this.nodes.put(counter, ip);
-        } catch (IOException e) {
-            System.out.println("Error creating socket in NodeManager");
-        }
-        System.out.println("new player added");
+    public void addNewPlayer(NodeSocket nodeSocket) {
+        this.nodeConnectionsList.add(new NodeConnection(new Node(counter, nodeSocket.getIp()), nodeSocket, this.packetManager));
+        this.nodes.put(counter, nodeSocket.getIp());
+        System.out.println("New player: " + nodeSocket.getIp() + " added!");
         counter++;
     }
 
-    private void identifyConnections(String ip) {
-            try {
-                Socket socket = new Socket(ip, NodeServer.DEFAULT_PORT);
-                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                dataOutputStream.writeUTF("DummyTask maybe");
-                dataOutputStream.close();
-                socket.close();
-            } catch (IOException e) {
-                System.out.println("IOException creating a Socket.");
-            }
+    private void createNodeClient(String ip) {
+        try {
+            nodeClients.put(ip, new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+        } catch (IOException e) {
+            System.out.println("IOException creating a Socket.");
+        }
     }
 
     /**
@@ -180,19 +194,19 @@ public class NodeManager {
      * it will be added to the nodes table with its ID.</p>
      */
     public void discover() {
-        ips = new ArrayList<>();
+        //ips = new ArrayList<>();
         // TODO: Implement with Runner class
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             try {
-                if(!host.equals(this.ip)) {
+                if (!host.equals(this.ip)) {
                     if (InetAddress.getByName(host).isReachable(CALL_TIMEOUT)) {
-                        ips.add(host);
+                        //ips.add(host);
                         System.out.println(host + " is reachable");
                         // TODO: Handshake protocol
+                        this.createNodeClient(host);
                         // Create NodeConnection
                         //Testing if is dummyTask player
-                        this.identifyConnections(host);
                         // Send HELLO packet
                         // Receive HELLO response with node id
                         // Add node id with ip to hashmap

@@ -8,6 +8,7 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -32,7 +33,8 @@ public class NodeConnection extends Threaded {
         this.node = node;
         this.socket = socket;
         this.packetManager = packetManager;
-        this.start();
+        System.out.println("new nodeConnection created!");
+        //this.start();
     }
 
     /**
@@ -47,7 +49,6 @@ public class NodeConnection extends Threaded {
     public NodeSocket getNodeSocket() {
         return socket;
     }
-
 
     public PacketManager getManager() {
         return this.packetManager;
@@ -78,17 +79,8 @@ public class NodeConnection extends Threaded {
         }
     }
 
-    private void identifyConnections() {
-        try {
-            this.socket.write("DummyTask maybe".getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            System.out.println("problem writing message");
-        }
-    }
-
     @Override
     public void run() {
         // TODO: thread routine (rebre packets)
-        this.identifyConnections();
     }
 }

@@ -1,14 +1,12 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 
 /**
  * The NodeServer Class listens for incoming Node connections and assigns them a new NodeConnection.
@@ -24,9 +22,11 @@ public class NodeServer extends Threaded {
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
     private NodeManager nodeManager;
+    private PacketManager packetManager;
 
-    public NodeServer(NodeManager nodeManager) {
-        this.nodeManager=nodeManager;
+    public NodeServer(NodeManager nodeManager, PacketManager packetManager) {
+        this.nodeManager = nodeManager;
+        this.packetManager = packetManager;
         try {
             socket = new ServerSocket(DEFAULT_PORT);
         } catch (IOException e) {
@@ -46,37 +46,15 @@ public class NodeServer extends Threaded {
         this.socket = socket;
     }
 
-    /**
-     * Put to listen in order to connect with the client.
-     */
-    private void startConnection() {
-
-    }
-
     @Override
     public void run() {
         while (this.run) {
             try {
                 // TODO: use node socket instead
                 // TODO: create node connection on client connection
-                Socket socket = this.socket.accept();
-                System.out.println("Creando conexión con: " + socket.getInetAddress().getHostAddress());
-                DataInputStream flujoEntrada = new DataInputStream(socket.getInputStream());
-                String message = flujoEntrada.readUTF();
-                String clientIp = socket.getInetAddress().getHostAddress();
+                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                this.nodeManager.identifyPlayer(nodeSocket);
                 // TODO: use internal packets to check for nodes
-                if("Yes".equals(message)){
-                    if(!this.nodeManager.nodeInHash(clientIp)) {
-                        System.out.println("Identificado cliente DummyTask con la ip: " + clientIp);
-                        this.nodeManager.addNewPlayer(clientIp); // nodeconnection
-                    }
-                }else if("DummyTask maybe".equals(message)){
-                    DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
-                    dataOutputStream.writeUTF("Yes");
-                    dataOutputStream.flush();
-                }
-                flujoEntrada.close();
-                socket.close();
             } catch (Exception e) {
                 System.out.println("Problem in NodeServer run()");
                 e.printStackTrace();
