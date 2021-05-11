@@ -60,8 +60,6 @@ public class NodeManager {
             String message = inputStream.readUTF();
             if ("I am Damn player".equals(message) && !this.nodeInHash(nodeSocket.getIp())) {
                 this.addNewPlayer(nodeSocket);
-                NodeClient nodeClient=this.nodeClients.get(nodeSocket.getIp());
-                nodeClient.setIdentifiedPlayer(true);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,7 +80,7 @@ public class NodeManager {
 
     private void createNodeClient(String ip) {
         try {
-            nodeClients.put(ip, new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+            new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
         } catch (IOException e) {
             System.out.println("IOException creating a Socket.");
         }

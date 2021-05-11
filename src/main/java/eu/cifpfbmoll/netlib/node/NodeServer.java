@@ -53,7 +53,8 @@ public class NodeServer extends Threaded {
                 // TODO: use node socket instead
                 // TODO: create node connection on client connection
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                this.nodeManager.identifyPlayer(nodeSocket);
+                if (!this.nodeManager.nodeInHash(nodeSocket.getIp()))
+                    this.nodeManager.identifyPlayer(nodeSocket);
                 // TODO: use internal packets to check for nodes
             } catch (Exception e) {
                 System.out.println("Problem in NodeServer run()");
