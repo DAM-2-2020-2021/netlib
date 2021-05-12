@@ -16,9 +16,39 @@ import java.util.Map;
  * @see PacketHandler
  */
 public class PacketManager {
+    /**
+     * Store PacketType information.
+     *
+     * @param <T> PacketType parametrized type
+     */
+    private static final class PacketInfo<T> {
+        public final Class<T> clazz;
+        public final PacketHandler<T> handler;
+
+        private PacketInfo(Class<T> clazz, PacketHandler<T> handler) {
+            this.clazz = clazz;
+            this.handler = handler;
+        }
+
+        /**
+         * Process a Packet and deserialize it into the correct object type.
+         *
+         * @param packet Packet to deserialize
+         */
+        public void process(Packet packet) {
+            try {
+                T object = clazz.getConstructor().newInstance();
+                PacketParser parser = PacketParser.getInstance();
+                parser.deserialize(object, packet.data);
+                handler.handle(packet.src, object);
+            } catch (Exception e) {
+                log.error("failed to process packet: ", e);
+            }
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(PacketManager.class);
-    private final Map<String, PacketHandler<?>> handlers = new HashMap<>();
-    private final Map<String, Class<?>> types = new HashMap<>();
+    private final Map<String, PacketInfo<?>> packetInfo = new HashMap<>();
 
     /**
      * Add a new Packet Handler for Packet type.
@@ -36,10 +66,9 @@ public class PacketManager {
         if (packetType == null)
             throw new IllegalArgumentException(String.format("Missing @PacketType annotation in class '%s'.", clazz.getSimpleName()));
         String type = Packet.formatType(packetType.value());
-        if (this.handlers.containsKey(type) || this.types.containsKey(type))
+        if (this.packetInfo.containsKey(type))
             throw new IllegalArgumentException(String.format("PacketType '%s' is already registered.", type));
-        this.handlers.put(type, handler);
-        this.types.put(type, clazz);
+        this.packetInfo.put(type, new PacketInfo<>(clazz, handler));
     }
 
     /**
@@ -49,8 +78,7 @@ public class PacketManager {
      */
     public void remove(String type) {
         String packetType = Packet.formatType(type);
-        this.handlers.remove(packetType);
-        this.types.remove(packetType);
+        this.packetInfo.remove(packetType);
     }
 
     /**
@@ -73,17 +101,8 @@ public class PacketManager {
      */
     public void process(Packet packet) {
         if (packet == null) return;
-        Class<?> type = this.types.get(packet.type);
-        PacketHandler handler = this.handlers.get(packet.type);
-        if (handler != null) {
-            try {
-                Object object = type.getConstructor().newInstance();
-                PacketParser parser = PacketParser.getInstance();
-                parser.deserialize(object, packet.data);
-                handler.handle(packet.src, object);
-            } catch (Exception e) {
-                log.error("failed to process packet: ", e);
-            }
-        }
+        PacketInfo<?> packetInfo = this.packetInfo.get(packet.type);
+        if (packetInfo == null) return;
+        packetInfo.process(packet);
     }
 }
