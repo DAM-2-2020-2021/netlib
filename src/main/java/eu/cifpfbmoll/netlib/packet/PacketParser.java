@@ -278,7 +278,7 @@ public class PacketParser {
      * @return TypeInfo that is assignable from the specified type, null if no TypeInfo was found
      * @throws IllegalArgumentException if specified type is not supported
      */
-    public TypeInfo getTypeInfo(Class<?> type) {
+    private TypeInfo getTypeInfo(Class<?> type) {
         for (Class<?> key : types.keySet())
             if (key.isAssignableFrom(type)) return types.get(key);
         throw new IllegalArgumentException(String.format("'%s' type is not supported as a PacketAttribute.", type.getSimpleName()));
@@ -340,7 +340,6 @@ public class PacketParser {
                 fields.add(field);
             }
         }
-        System.out.println("allocating a size of: " + size);
         ByteBuffer bb = ByteBuffer.allocate(size);
         for (Field field : fields)
             getTypeInfo(field.getType()).serializer.handle(object, field, bb);

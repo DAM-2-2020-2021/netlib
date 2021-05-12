@@ -1,7 +1,5 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.annotation.PacketType;
-import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 
@@ -9,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Implement list of NodeConnections and helper functions (add, remove, getById...)
 /**
  * Discover and manage nodes in the network and register
  */
@@ -43,24 +42,13 @@ public class NodeManager {
     }
 
     /**
-     * Connect to a node with the specified ID.
+     * Send a Packet object to an other node with id.
      *
-     * @param id node ID
-     * @return NodeConnection if connection was successful, null otherwise.
+     * @param id target node id
+     * @param packet packet object to send
      */
-    public static NodeConnection connect(Integer id) {
-        return null;
-    }
-
-    /**
-     * Connect to a node with the specified IP address and port.
-     *
-     * @param ip   IP to connect to
-     * @param port port to connect to
-     * @return NodeConnection if connection was successful, null otherwise.
-     */
-    public static NodeConnection connect(String ip, Integer port) {
-        return null;
+    public void send(Integer id, Object packet) {
+        // TODO: Get NodeConnection by id
     }
 
     /**
@@ -102,7 +90,7 @@ public class NodeManager {
     }
 
     /**
-     * Add a new Packet Handler for Packet type.
+     * Register a Packet Handler for Packet type.
      *
      * @param clazz   object class to handle
      * @param handler packet handler to handle a Packet type
@@ -110,25 +98,25 @@ public class NodeManager {
      * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
      * @see PacketHandler
      */
-    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
+    public <T> void register(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
         this.manager.add(clazz, handler);
     }
 
     /**
-     * Removed Packet Handler for Packet type.
+     * Remove registered Packet Handler for Packet type.
      *
      * @param type packet type to remove
      */
-    public void remove(String type) {
+    public void unregister(String type) {
         this.manager.remove(type);
     }
 
     /**
-     * Removed Packet Handler for Packet type.
+     * Remove registered Packet Handler for Packet type.
      *
      * @param clazz class of the packet type to remove
      */
-    public void remove(Class<?> clazz) {
+    public void unregister(Class<?> clazz) {
         this.manager.remove(clazz);
     }
 

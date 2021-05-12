@@ -18,11 +18,13 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
+    private final Integer id;
     private final Node node;
     private final NodeSocket socket;
     private final PacketManager manager;
 
-    protected NodeConnection(Node node, NodeSocket socket, PacketManager manager) {
+    protected NodeConnection(Integer id, Node node, NodeSocket socket, PacketManager manager) {
+        this.id = id;
         this.node = node;
         this.socket = socket;
         this.manager = manager;
@@ -59,10 +61,10 @@ public class NodeConnection extends Threaded {
             PacketType packetType = clazz.getAnnotation(PacketType.class);
             if (packetType == null) return false;
             String type = Packet.formatType(packetType.value());
-
-            // TODO: implement packet src and dst ids
             PacketParser parser = PacketParser.getInstance();
-            Packet packet = Packet.create(type, 0, this.node.getId(), parser.serialize(object));
+            byte[] data = parser.serialize(object);
+            if (data == null) return false;
+            Packet packet = Packet.create(type, this.id, this.node.getId(), data);
             this.socket.write(packet.dump());
             return true;
         } catch (Exception e) {
