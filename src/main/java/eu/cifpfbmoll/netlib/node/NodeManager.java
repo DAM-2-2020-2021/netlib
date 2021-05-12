@@ -1,50 +1,60 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
+import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO: Implement list of NodeConnections and helper functions (add, remove, getById...)
 /**
  * Discover and manage nodes in the network and register
  */
 public class NodeManager {
-    private final Map<Integer, String> nodes = new HashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
+    private final Integer id;
     private final PacketManager manager;
+    private final NodeServer nodeServer;
+    private final Map<Integer, String> nodes = new HashMap<>();
+    private final List<NodeConnection> nodeConnections = new ArrayList<>();
 
     /**
      * Create a NodeManager with a PacketManager.
      *
      * @param manager PacketManager
      */
-    public NodeManager(PacketManager manager) {
+    public NodeManager(Integer nodeId, PacketManager manager) throws IOException {
+        this.id = nodeId;
         this.manager = manager;
+        this.nodeServer = new NodeServer(this);
+
+        register(ACKPacket.class, (id, ack) -> {
+            System.out.println("received ACK packet");
+            System.out.println("ok, this is fucking cool...");
+        });
+
+        register(HelloPacket.class, (id, hello) -> {
+            System.out.println("received hello packet with id: " + hello.id);
+        });
     }
 
     /**
      * Create a NodeManager with default values.
      */
-    public NodeManager() {
-        this.manager = new PacketManager();
-    }
-
-    /**
-     * Create a new NodeServer and start listening for connections.
-     *
-     * @param port listening port
-     * @return NodeServer instance
-     */
-    public static NodeServer startServer(Integer port) {
-        return null;
+    public NodeManager(Integer id) throws IOException {
+        this(id, new PacketManager());
     }
 
     /**
      * Send a Packet object to an other node with id.
      *
-     * @param id target node id
+     * @param id     target node id
      * @param packet packet object to send
      */
     public void send(Integer id, Object packet) {
@@ -54,10 +64,28 @@ public class NodeManager {
     /**
      * Get PacketManager.
      *
-     * @return Current PacketManager
+     * @return current PacketManager
      */
-    public PacketManager getManager() {
+    public PacketManager getPacketManager() {
         return manager;
+    }
+
+    /**
+     * Get NodeServer.
+     *
+     * @return current NodeServer
+     */
+    public NodeServer getNodeServer() {
+        return nodeServer;
+    }
+
+    /**
+     * Get Node's id
+     *
+     * @return current node's id
+     */
+    public Integer getId() {
+        return id;
     }
 
     /**
@@ -76,7 +104,7 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public void put(Integer id, String ip) {
+    public void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
     }
 
@@ -85,8 +113,65 @@ public class NodeManager {
      *
      * @param id node ID
      */
-    public void remove(Integer id) {
+    public void removeNodeId(Integer id) {
         this.nodes.remove(id);
+    }
+
+    /**
+     * Get NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to look for
+     * @return matching NodeConnection
+     */
+    public NodeConnection nodeConnectionById(Integer id) {
+        NodeConnection nodeConnection = null;
+        for (NodeConnection conn : this.nodeConnections) {
+            if (conn.getNode().getId().equals(id)) {
+                nodeConnection = conn;
+                break;
+            }
+        }
+        return nodeConnection;
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to remove
+     */
+    public void removeNodeConnectionById(Integer id) {
+        for (int i = 0; i < this.nodeConnections.size(); i++) {
+            NodeConnection conn = this.nodeConnections.get(i);
+            if (conn.getNode().getId().equals(id)) {
+                this.nodeConnections.remove(i);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Add NodeConnection to NodeConnections list if not present.
+     *
+     * @param nodeConnection NodeConnection to add
+     */
+    public void addNodeConnection(NodeConnection nodeConnection) {
+        /*Integer id = nodeConnection.getNode().getId();
+        if (id < 0) {
+            log.info("received unidentified connection");
+        }
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null)
+            this.nodeConnections.add(nodeConnection);*/
+        this.nodeConnections.add(nodeConnection);
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list.
+     *
+     * @param nodeConnection NodeConnection to remove
+     */
+    public void removeNodeConnection(NodeConnection nodeConnection) {
+        removeNodeConnectionById(nodeConnection.getNode().getId());
     }
 
     /**

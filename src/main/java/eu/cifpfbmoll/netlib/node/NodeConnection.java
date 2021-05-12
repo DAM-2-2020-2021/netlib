@@ -8,6 +8,8 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 /**
  * The NodeConnection Class manages a single connection with another node on the network.
  *
@@ -23,11 +25,12 @@ public class NodeConnection extends Threaded {
     private final NodeSocket socket;
     private final PacketManager manager;
 
-    protected NodeConnection(Integer id, Node node, NodeSocket socket, PacketManager manager) {
+    public NodeConnection(Integer id, Node node, NodeSocket socket, PacketManager manager) {
         this.id = id;
         this.node = node;
         this.socket = socket;
         this.manager = manager;
+        start();
     }
 
     /**
@@ -75,5 +78,15 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
+        while (this.run) {
+            try {
+                byte[] data = new byte[1024];
+                int size = this.socket.read(data);
+                Packet packet = Packet.load(data);
+                this.manager.process(packet);
+            } catch (Exception e) {
+                log.error("NodeConnection channel failed: ", e);
+            }
+        }
     }
 }

@@ -20,14 +20,15 @@ public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
     private static final int DEFAULT_PORT = 420;
     private final ServerSocket socket;
+    private final NodeManager nodeManager;
 
     /**
      * Create a new NodeServer with a port to listen on.
      *
      * @throws IOException if port binding fails
      */
-    protected NodeServer() throws IOException {
-        this(new ServerSocket(DEFAULT_PORT));
+    protected NodeServer(NodeManager nodeManager) throws IOException {
+        this(nodeManager, new ServerSocket(DEFAULT_PORT));
     }
 
     /**
@@ -36,8 +37,8 @@ public class NodeServer extends Threaded {
      * @param port port number to bound socket to
      * @throws IOException if port binding fails
      */
-    protected NodeServer(int port) throws IOException {
-        this(new ServerSocket(port));
+    protected NodeServer(NodeManager nodeManager, int port) throws IOException {
+        this(nodeManager, new ServerSocket(port));
     }
 
     /**
@@ -46,14 +47,23 @@ public class NodeServer extends Threaded {
      * @param socket ServerSocket to create NodeServer from
      * @throws NullPointerException if socket is null
      */
-    protected NodeServer(ServerSocket socket) throws NullPointerException {
-        if (socket == null) throw new NullPointerException("ServerSocket must not be null");
+    protected NodeServer(NodeManager nodeManager, ServerSocket socket) throws NullPointerException {
+        if (socket == null || nodeManager == null) throw new NullPointerException("ServerSocket must not be null");
+        this.nodeManager = nodeManager;
         this.socket = socket;
+        this.start();
     }
 
     @Override
     public void run() {
         try {
+            while (this.run) {
+                log.info("listening for connections on port " + DEFAULT_PORT);
+                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                log.info("new connection");
+                NodeConnection nodeConnection = new NodeConnection(this.nodeManager.getId(), new Node(-1, null), nodeSocket, this.nodeManager.getPacketManager());
+                this.nodeManager.addNodeConnection(nodeConnection);
+            }
         } catch (Exception e) {
             log.error("ServerSocket thread crashed: ", e);
         } finally {
