@@ -61,7 +61,7 @@ public class NodeServer extends Threaded {
                 log.info("listening for connections on port " + DEFAULT_PORT);
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
                 log.info("new connection");
-                NodeConnection nodeConnection = new NodeConnection(this.nodeManager.getId(), new Node(-1, null), nodeSocket, this.nodeManager.getPacketManager());
+                NodeConnection nodeConnection = new NodeConnection(this.nodeManager.getId(), new Node(-1, null), nodeSocket, this.nodeManager);
                 this.nodeManager.addNodeConnection(nodeConnection);
             }
         } catch (Exception e) {

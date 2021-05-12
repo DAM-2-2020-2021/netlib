@@ -23,9 +23,9 @@ public class NodeConnection extends Threaded {
     private final Integer id;
     private final Node node;
     private final NodeSocket socket;
-    private final PacketManager manager;
+    private final NodeManager manager;
 
-    public NodeConnection(Integer id, Node node, NodeSocket socket, PacketManager manager) {
+    public NodeConnection(Integer id, Node node, NodeSocket socket, NodeManager manager) {
         this.id = id;
         this.node = node;
         this.socket = socket;
@@ -43,11 +43,11 @@ public class NodeConnection extends Threaded {
     }
 
     /**
-     * Get PacketManager.
+     * Get NodeManager.
      *
-     * @return current PacketManager
+     * @return current NodeManager
      */
-    public PacketManager getManager() {
+    public NodeManager getManager() {
         return manager;
     }
 
@@ -83,10 +83,11 @@ public class NodeConnection extends Threaded {
                 byte[] data = new byte[1024];
                 int size = this.socket.read(data);
                 Packet packet = Packet.load(data);
-                this.manager.process(packet);
+                this.manager.getPacketManager().process(packet);
             } catch (Exception e) {
                 log.error("NodeConnection channel failed: ", e);
             }
         }
+        this.manager.removeNodeConnection(this);
     }
 }

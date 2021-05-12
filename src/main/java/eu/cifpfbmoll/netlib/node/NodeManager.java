@@ -57,8 +57,13 @@ public class NodeManager {
      * @param id     target node id
      * @param packet packet object to send
      */
-    public void send(Integer id, Object packet) {
-        // TODO: Get NodeConnection by id
+    public boolean send(Integer id, Object packet) {
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null) {
+            // TODO: Look for nodes id HashMap and create a new connection
+            return false;
+        }
+        return conn.send(packet);
     }
 
     /**
@@ -155,14 +160,13 @@ public class NodeManager {
      * @param nodeConnection NodeConnection to add
      */
     public void addNodeConnection(NodeConnection nodeConnection) {
-        /*Integer id = nodeConnection.getNode().getId();
+        Integer id = nodeConnection.getNode().getId();
         if (id < 0) {
             log.info("received unidentified connection");
         }
         NodeConnection conn = nodeConnectionById(id);
         if (conn == null)
-            this.nodeConnections.add(nodeConnection);*/
-        this.nodeConnections.add(nodeConnection);
+            this.nodeConnections.add(nodeConnection);
     }
 
     /**
