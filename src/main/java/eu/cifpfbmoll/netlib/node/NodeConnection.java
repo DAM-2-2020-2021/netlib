@@ -2,13 +2,10 @@ package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
-import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketParser;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 /**
  * The NodeConnection Class manages a single connection with another node on the network.

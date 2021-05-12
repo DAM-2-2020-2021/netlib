@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Discover and manage nodes in the network and register
+ * Discover, connect and manage nodes in the network.
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
