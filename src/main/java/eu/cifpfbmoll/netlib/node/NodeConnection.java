@@ -17,13 +17,11 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
-    private final Integer id;
     private final Node node;
     private final NodeSocket socket;
     private final NodeManager manager;
 
-    public NodeConnection(Integer id, Node node, NodeSocket socket, NodeManager manager) {
-        this.id = id;
+    public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
@@ -64,7 +62,7 @@ public class NodeConnection extends Threaded {
             PacketParser parser = PacketParser.getInstance();
             byte[] data = parser.serialize(object);
             if (data == null) return false;
-            Packet packet = Packet.create(type, this.id, this.node.getId(), data);
+            Packet packet = Packet.create(type, this.manager.getId(), this.node.getId(), data);
             this.socket.write(packet.dump());
             return true;
         } catch (Exception e) {
@@ -75,10 +73,11 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
-        while (this.run) {
+        while (this.run && !this.socket.isClosed()) {
             try {
                 byte[] data = new byte[1024];
                 int size = this.socket.read(data);
+                log.info("read size: " + size);
                 Packet packet = Packet.load(data);
                 this.manager.getPacketManager().process(packet);
             } catch (Exception e) {

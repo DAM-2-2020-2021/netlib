@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,7 +15,7 @@ import java.net.Socket;
  * @see InputStream
  * @see OutputStream
  */
-public class NodeSocket {
+public class NodeSocket implements Closeable {
     private final Socket socket;
     private final InputStream inputStream;
     private final OutputStream outputStream;
@@ -80,10 +81,20 @@ public class NodeSocket {
     }
 
     /**
+     * Check if socket is closed.
+     *
+     * @return true if socket is closed, false otherwise.
+     */
+    public boolean isClosed() {
+        return this.socket.isClosed();
+    }
+
+    /**
      * Terminate connection and close socket and InputStream/OutputStream.
      *
      * @throws IOException if an IO error occurs
      */
+    @Override
     public void close() throws IOException {
         if (this.inputStream != null) this.inputStream.close();
         if (this.outputStream != null) this.outputStream.close();

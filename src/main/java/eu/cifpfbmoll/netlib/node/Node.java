@@ -35,4 +35,7 @@ public class Node {
         this.id = id;
         this.ip = ip;
     }
+
+    public Node() {
+    }
 }

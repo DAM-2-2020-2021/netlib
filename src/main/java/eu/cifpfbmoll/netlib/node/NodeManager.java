@@ -29,10 +29,10 @@ public class NodeManager {
      *
      * @param manager PacketManager
      */
-    public NodeManager(Integer nodeId, PacketManager manager) throws IOException {
+    public NodeManager(Integer nodeId, PacketManager manager, boolean server) throws IOException {
         this.id = nodeId;
         this.manager = manager;
-        this.nodeServer = new NodeServer(this);
+        this.nodeServer = server ? new NodeServer(this) : null;
 
         register(ACKPacket.class, (id, ack) -> {
             System.out.println("received ACK packet");
@@ -40,15 +40,29 @@ public class NodeManager {
         });
 
         register(HelloPacket.class, (id, hello) -> {
-            System.out.println("received hello packet with id: " + hello.id);
+            System.out.println("received hello packet with ip: " + hello.ip);
         });
     }
 
     /**
+     * Create a Node
+     *
+     * @param id NodeManager id
+     * @param server boolean value to create NodeServer or not
+     * @throws IOException if NodeServer initialization fails
+     */
+    public NodeManager(Integer id, boolean server) throws IOException {
+        this(id, new PacketManager(), server);
+    }
+
+    /**
      * Create a NodeManager with default values.
+     *
+     * @param id NodeManager id
+     * @throws IOException if NodeServer initialization fails
      */
     public NodeManager(Integer id) throws IOException {
-        this(id, new PacketManager());
+        this(id, new PacketManager(), true);
     }
 
     /**
@@ -60,8 +74,15 @@ public class NodeManager {
     public boolean send(Integer id, Object packet) {
         NodeConnection conn = nodeConnectionById(id);
         if (conn == null) {
-            // TODO: Look for nodes id HashMap and create a new connection
-            return false;
+            String ip = this.nodes.get(id);
+            if (ip == null) return false;
+            try {
+                NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
+                conn = new NodeConnection(new Node(id, ip), socket, this);
+            } catch (IOException e) {
+                log.error("failed to create connection with ", e);
+                return false;
+            }
         }
         return conn.send(packet);
     }
@@ -161,9 +182,6 @@ public class NodeManager {
      */
     public void addNodeConnection(NodeConnection nodeConnection) {
         Integer id = nodeConnection.getNode().getId();
-        if (id < 0) {
-            log.info("received unidentified connection");
-        }
         NodeConnection conn = nodeConnectionById(id);
         if (conn == null)
             this.nodeConnections.add(nodeConnection);

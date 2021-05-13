@@ -18,7 +18,7 @@ import java.net.ServerSocket;
  */
 public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
-    private static final int DEFAULT_PORT = 420;
+    public static final int DEFAULT_PORT = 420;
     private final ServerSocket socket;
     private final NodeManager nodeManager;
 
@@ -51,7 +51,7 @@ public class NodeServer extends Threaded {
         if (socket == null || nodeManager == null) throw new NullPointerException("ServerSocket must not be null");
         this.nodeManager = nodeManager;
         this.socket = socket;
-        this.start();
+        start();
     }
 
     @Override
@@ -60,9 +60,7 @@ public class NodeServer extends Threaded {
             while (this.run) {
                 log.info("listening for connections on port " + DEFAULT_PORT);
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                log.info("new connection");
-                NodeConnection nodeConnection = new NodeConnection(this.nodeManager.getId(), new Node(-1, null), nodeSocket, this.nodeManager);
-                this.nodeManager.addNodeConnection(nodeConnection);
+                new NodeIdentification(nodeSocket, this.nodeManager);
             }
         } catch (Exception e) {
             log.error("ServerSocket thread crashed: ", e);

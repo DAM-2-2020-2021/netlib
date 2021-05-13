@@ -6,5 +6,5 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 @PacketType("HELO")
 public class HelloPacket {
     @PacketAttribute
-    public Integer id;
+    public String ip;
 }

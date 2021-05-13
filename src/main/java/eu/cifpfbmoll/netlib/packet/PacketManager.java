@@ -4,6 +4,7 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,7 +103,10 @@ public class PacketManager {
     public void process(Packet packet) {
         if (packet == null) return;
         PacketInfo<?> packetInfo = this.packetInfo.get(packet.type);
-        if (packetInfo == null) return;
-        packetInfo.process(packet);
+        if (packetInfo == null) {
+            log.warn("No registered packet handler found for packet type: " + packet.type);
+        } else {
+            packetInfo.process(packet);
+        }
     }
 }
