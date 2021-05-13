@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
 import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
@@ -24,6 +25,7 @@ public class NodeIdentification extends Threaded {
             this.node.setIp(packet.ip);
             NodeConnection conn = new NodeConnection(this.node, this.socket, this.manager);
             this.manager.addNodeConnection(conn);
+            this.manager.send(id, new ACKPacket());
             this.run = false;
         });
         start();
@@ -37,11 +39,9 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                byte[] data = new byte[512];
+                byte[] data = new byte[256];
                 int size = this.socket.read(data);
-                log.info("read size: " + size);
                 Packet packet = Packet.load(data);
-                log.info("packet data size: " + packet.data.length);
                 this.packetManager.process(packet);
             } catch (Exception e) {
                 log.error("NodeIdentification's thread failed: ", e);

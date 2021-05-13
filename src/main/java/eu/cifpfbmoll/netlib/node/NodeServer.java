@@ -60,6 +60,9 @@ public class NodeServer extends Threaded {
             while (this.run) {
                 log.info("listening for connections on port " + DEFAULT_PORT);
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                // TODO: Check if node ip is in nodes HashMap
+                // if is in hash map -> NodeConnection -> add to list
+                // if is not present -> NodeIdentification
                 new NodeIdentification(nodeSocket, this.nodeManager);
             }
         } catch (Exception e) {

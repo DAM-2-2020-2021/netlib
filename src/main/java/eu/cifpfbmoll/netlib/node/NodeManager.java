@@ -35,7 +35,7 @@ public class NodeManager {
         this.nodeServer = server ? new NodeServer(this) : null;
 
         register(ACKPacket.class, (id, ack) -> {
-            System.out.println("received ACK packet");
+            System.out.println("received ACK packet from id: " + id);
             System.out.println("ok, this is fucking cool...");
         });
 
@@ -165,7 +165,7 @@ public class NodeManager {
      *
      * @param id node id to remove
      */
-    public void removeNodeConnectionById(Integer id) {
+    public synchronized void removeNodeConnectionById(Integer id) {
         for (int i = 0; i < this.nodeConnections.size(); i++) {
             NodeConnection conn = this.nodeConnections.get(i);
             if (conn.getNode().getId().equals(id)) {
@@ -173,6 +173,7 @@ public class NodeManager {
                 break;
             }
         }
+        notifyAll();
     }
 
     /**
@@ -180,11 +181,13 @@ public class NodeManager {
      *
      * @param nodeConnection NodeConnection to add
      */
-    public void addNodeConnection(NodeConnection nodeConnection) {
+    public synchronized void addNodeConnection(NodeConnection nodeConnection) {
         Integer id = nodeConnection.getNode().getId();
         NodeConnection conn = nodeConnectionById(id);
         if (conn == null)
             this.nodeConnections.add(nodeConnection);
+        log.info("added node connection with id: " + id);
+        notifyAll();
     }
 
     /**
