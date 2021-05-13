@@ -2,6 +2,7 @@ package eu.cifpfbmoll.netlib.packet;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -84,18 +85,22 @@ public class Packet {
      * @return deserialized packet
      */
     public static Packet load(byte[] bytes) {
-        byte[] ptype = Arrays.copyOfRange(bytes, 0, PACKET_TYPE_SIZE);
-        String type = new String(ptype, CHARSET_ENCODING);
-        type = Packet.formatType(type);
-        int index = PACKET_TYPE_SIZE;
-        byte ttl = bytes[index++];
-        byte src = bytes[index++];
-        byte dst = bytes[index++];
-        byte nresend = bytes[index++];
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        byte[] ptype = new byte[PACKET_TYPE_SIZE];
+        for (int i = 0; i < PACKET_TYPE_SIZE; i++)
+            ptype[i] = bb.get();
+        String type = formatType(new String(ptype, CHARSET_ENCODING));
+        byte ttl = bb.get();
+        byte src = bb.get();
+        byte dst = bb.get();
+        byte nresend = bb.get();
         byte[] resend = new byte[nresend];
         for (int i = 0; i < nresend; i++)
-            resend[i] = bytes[index++];
-        byte[] data = Arrays.copyOfRange(bytes, index, bytes.length);
+            resend[i] = bb.get();
+        short dataSize = bb.getShort();
+        byte[] data = new byte[dataSize];
+        for (int i = 0; i < dataSize; i++)
+            data[i] = bb.get();
         return new Packet(type, ttl, src, dst, resend, data);
     }
 
@@ -150,7 +155,7 @@ public class Packet {
      * @return packet size
      */
     public int size() {
-        return headerSize() + this.data.length;
+        return headerSize() + 2 + this.data.length;
     }
 
     /**
@@ -167,19 +172,18 @@ public class Packet {
     }
 
     public byte[] dump() {
-        byte[] bytes = new byte[this.size()];
+        ByteBuffer bb = ByteBuffer.allocate(this.size());
         byte[] str = this.type.getBytes(CHARSET_ENCODING);
-        int index = 0;
         for (int i = 0; i < PACKET_TYPE_SIZE; i++)
-            bytes[index++] = (i < str.length) ? str[i] : DEFAULT_TYPE_VALUE;
-        bytes[index++] = this.ttl;
-        bytes[index++] = this.src;
-        bytes[index++] = this.dst;
-        bytes[index++] = (byte) this.resend.length;
-        for (int i = 0; i < this.resend.length; i++)
-            bytes[index++] = this.resend[i];
-        System.arraycopy(this.data, 0, bytes, index, this.data.length);
-        return bytes;
+            bb.put((i < str.length) ? str[i] : DEFAULT_TYPE_VALUE);
+        bb.put(this.ttl);
+        bb.put(this.src);
+        bb.put(this.dst);
+        bb.put((byte) this.resend.length);
+        for (byte b : this.resend) bb.put(b);
+        bb.putShort((short) this.data.length);
+        for (byte b : this.data) bb.put(b);
+        return bb.array();
     }
 
     @Override
