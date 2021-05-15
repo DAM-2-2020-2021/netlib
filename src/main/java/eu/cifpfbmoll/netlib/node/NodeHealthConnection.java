@@ -4,28 +4,33 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class NodeHealthConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeHealthConnection.class);
-    private boolean healthyConnection;
+    private boolean acknowledgmentReceived;
     private int communicationAttempts = 5;
     private final int DELAY = 300;
+    private NodeChannel nodeChannel;
     private NodeConnection nodeConnection;
 
-    public NodeHealthConnection(NodeConnection nodeConnection) {
-        this.healthyConnection = true;
+    /**
+     * Creates nodeHealhConnection instance.
+     *
+     * @param nodeChannel NodeChannel instance.
+     */
+    public NodeHealthConnection(NodeChannel nodeChannel, NodeConnection nodeConnection) {
         this.nodeConnection = nodeConnection;
+        this.nodeChannel = nodeChannel;
         this.start();
     }
 
-    private void setAcknowledgmentReceived() {
-    }
-
-    public boolean isConnectionOK() {
-        return this.healthyConnection;
+    /**
+     * Sets Acknowledgment received attribute true;
+     */
+    public void setAcknowledgmentReceived() {
+        this.acknowledgmentReceived = true;
     }
 
     /**
@@ -33,57 +38,34 @@ public class NodeHealthConnection extends Threaded {
      */
     private void sendAcknowledgment() {
         try {
+            this.acknowledgmentReceived = false;
             DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
             outputStream.writeUTF("Can you hear me?");
             outputStream.flush();
         } catch (IOException e) {
-            log.info("Sending Acknowledgement");        }
+            log.info("Sending Acknowledgement");
+        }
     }
 
     /**
      * Send an acknowledgment in order to check communication state. If acknowledgment does not arrive in 5 retries
-     * it will close the Sockets.
+     * it will remove the socket of Channel class.
      */
-    private void getAcknowledgement() {
-        try {
-            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
-            String message = inputStream.readUTF();
-            if ("Can you hear me?".equals(message)) {
-                this.acknowledgmentReceived = true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void tryFeedback() {
+        for (int i = 0; i < this.communicationAttempts && !this.acknowledgmentReceived; i++) {
+            this.sleep(this.DELAY);
         }
-    }
-
-    private void receivingAcknowledgment(){
-        try {
-            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
-            String message = inputStream.readUTF();
-            if ("Can you hear me?".equals(message)) {
-                DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
-                outputStream.writeUTF("Yes I do");
-                outputStream.flush();
-                log.info("Answering Acknowledgement");
-            }else if("Yes I do".equals(message)){
-                this.healthyConnection=true;
-                log.info("Acknowledgement received!");
-            }else if(message==null){
-                log.info("Message content null, establishing new connexion");
-                this.healthyConnection=false;
-            }
-        } catch (IOException e) {
-            log.error("Error getting dataInputStream from socket", e);
+        if (!this.acknowledgmentReceived) {
+            this.nodeChannel.quitSocket();
         }
     }
 
     @Override
     public void run() {
-        while (this.healthyConnection) {
+        while (this.nodeChannel.isChannelOk()) {
+            this.sleep(DELAY);
             this.sendAcknowledgment();
-
-            this.receivingAcknowledgment();
+            this.tryFeedback();
         }
-
     }
 }
