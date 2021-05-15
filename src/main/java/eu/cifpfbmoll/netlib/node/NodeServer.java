@@ -24,13 +24,19 @@ public class NodeServer extends Threaded {
     private NodeManager nodeManager;
     private PacketManager packetManager;
 
+    /**
+     * Creates a new NodeServer with an instance of NodeManager and PacketManager.
+     *
+     * @param nodeManager   NodeManager instance.
+     * @param packetManager PacketManager instance.
+     */
     public NodeServer(NodeManager nodeManager, PacketManager packetManager) {
         this.nodeManager = nodeManager;
         this.packetManager = packetManager;
         try {
-            socket = new ServerSocket(DEFAULT_PORT);
+            this.socket = new ServerSocket(DEFAULT_PORT);
         } catch (IOException e) {
-            System.out.println("IOException handled from ServerSocket");
+            log.error("Error while creating ServerSocket", e);
         }
         this.start();
     }
@@ -50,15 +56,20 @@ public class NodeServer extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                // TODO: use node socket instead
                 // TODO: create node connection on client connection
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                if (!this.nodeManager.nodeInHash(nodeSocket.getIp()))
-                    this.nodeManager.identifyPlayer(nodeSocket);
+                if (!this.nodeManager.nodeInHash(nodeSocket.getIp())) {
+                    log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
+                    new NodeIdentification(nodeSocket, this.nodeManager);
+                } else {
+                    NodeConnection nodeConnection = new NodeConnection(new Node(0+NodeManager.counter, nodeSocket.getIp()), nodeSocket, this.packetManager);
+                    NodeManager.counter++;
+                    this.nodeManager.addNewConnection(nodeConnection);
+                    log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
+                }
                 // TODO: use internal packets to check for nodes
             } catch (Exception e) {
-                System.out.println("Problem in NodeServer run()");
-                e.printStackTrace();
+                log.error("Error in NodeServer run", e);
             }
         }
         try {

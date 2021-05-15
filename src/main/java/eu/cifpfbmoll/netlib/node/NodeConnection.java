@@ -33,7 +33,6 @@ public class NodeConnection extends Threaded {
         this.node = node;
         this.socket = socket;
         this.packetManager = packetManager;
-        System.out.println("new nodeConnection created!");
         //this.start();
     }
 

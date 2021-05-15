@@ -11,21 +11,22 @@ import java.io.IOException;
 public class NodeHealthConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeHealthConnection.class);
     private boolean healthyConnection;
-    private boolean acknowledgmentReceived;
     private int communicationAttempts = 5;
     private final int DELAY = 300;
     private NodeConnection nodeConnection;
 
     public NodeHealthConnection(NodeConnection nodeConnection) {
-        this.healthyConnection=false;
-        this.nodeConnection=nodeConnection;
+        this.healthyConnection = true;
+        this.nodeConnection = nodeConnection;
         this.start();
     }
 
     private void setAcknowledgmentReceived() {
     }
 
-    public boolean isConnectionOK(){return this.healthyConnection;}
+    public boolean isConnectionOK() {
+        return this.healthyConnection;
+    }
 
     /**
      * Send an inputStream in order to verify if connection is OK.
@@ -35,29 +36,54 @@ public class NodeHealthConnection extends Threaded {
             DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
             outputStream.writeUTF("Can you hear me?");
             outputStream.flush();
-            }catch (IOException e){
-            System.out.println("IOException sending acknowledgment");
-        }
+        } catch (IOException e) {
+            log.info("Sending Acknowledgement");        }
     }
 
     /**
      * Send an acknowledgment in order to check communication state. If acknowledgment does not arrive in 5 retries
      * it will close the Sockets.
      */
-    private void getAcknowledgement(){
-        try{
-            DataInputStream inputStream=new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
-            String message=inputStream.readUTF();
-            if("Can you hear me?".equals(message)){
-                this.acknowledgmentReceived=true;
+    private void getAcknowledgement() {
+        try {
+            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
+            String message = inputStream.readUTF();
+            if ("Can you hear me?".equals(message)) {
+                this.acknowledgmentReceived = true;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private void receivingAcknowledgment(){
+        try {
+            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
+            String message = inputStream.readUTF();
+            if ("Can you hear me?".equals(message)) {
+                DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
+                outputStream.writeUTF("Yes I do");
+                outputStream.flush();
+                log.info("Answering Acknowledgement");
+            }else if("Yes I do".equals(message)){
+                this.healthyConnection=true;
+                log.info("Acknowledgement received!");
+            }else if(message==null){
+                log.info("Message content null, establishing new connexion");
+                this.healthyConnection=false;
+            }
+        } catch (IOException e) {
+            log.error("Error getting dataInputStream from socket", e);
+        }
+    }
+
     @Override
     public void run() {
+        while (this.healthyConnection) {
+            this.sendAcknowledgment();
+
+            this.receivingAcknowledgment();
+        }
 
     }
 }

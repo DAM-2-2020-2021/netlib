@@ -19,6 +19,11 @@ public class NodeSocket {
     private final InputStream inputStream;
     private final OutputStream outputStream;
 
+    /**
+     * Get Socket from NodeSocket instance.
+     *
+     * @return Socket.
+     */
     public Socket getSocket() {
         return socket;
     }
@@ -57,7 +62,12 @@ public class NodeSocket {
         this.outputStream.flush();
     }
 
-    public String getIp(){
+    /**
+     * Provides socket ip.
+     *
+     * @return NodeSocket's socket ip.
+     */
+    public String getIp() {
         return this.socket.getInetAddress().getHostAddress();
     }
 
