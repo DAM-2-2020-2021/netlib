@@ -23,7 +23,7 @@ public class NodeManager {
     private final Map<Integer, String> nodes = new HashMap<>();
     private final PacketManager packetManager;
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
-    public static int counter=1;
+    public static int counter = 1;
     private String ip;
     private String subnet;
     private NodeServer nodeServer;
@@ -44,6 +44,17 @@ public class NodeManager {
         // ADD PACKET TYPES
         add(ACKPacket.class, (id, ack) -> {
         });
+    }
+
+    public void setUpConnection(NodeConnection nodeConnection) {
+        int id = nodeConnection.getNode().getId();
+        String ip = this.nodes.get(id);
+        this.nodeConnectionsList.remove(nodeConnection);
+        try {
+            this.nodeConnectionsList.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this.packetManager));
+        } catch (IOException e) {
+            log.error("Problem creating new NoseSocket", e);
+        }
     }
 
     /**

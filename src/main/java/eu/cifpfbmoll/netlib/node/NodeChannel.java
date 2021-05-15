@@ -46,6 +46,9 @@ public class NodeChannel extends Threaded {
         }
     }
 
+    /**
+     * Receives acknowledgments and answer them. Sets healthyChannel to false otherwise.
+     */
     private void managingAcknowledgment() {
         try {
             DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
