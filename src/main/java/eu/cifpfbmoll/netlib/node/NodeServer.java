@@ -18,26 +18,23 @@ import java.net.ServerSocket;
  */
 public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
-    private static final int DEFAULT_PORT = 420;
-    private final ServerSocket socket;
+    public static final int DEFAULT_PORT = 420;
+    private ServerSocket socket;
+    private NodeManager manager;
 
     /**
-     * Create a new NodeServer with a port to listen on.
+     * Creates a new NodeServer with an instance of NodeManager and PacketManager.
      *
-     * @throws IOException if port binding fails
+     * @param manager NodeManager instance.
      */
-    protected NodeServer() throws IOException {
-        this(new ServerSocket(DEFAULT_PORT));
-    }
-
-    /**
-     * Create a new NodeServer with a port to listen on.
-     *
-     * @param port port number to bound socket to
-     * @throws IOException if port binding fails
-     */
-    protected NodeServer(int port) throws IOException {
-        this(new ServerSocket(port));
+    public NodeServer(NodeManager manager) {
+        this.manager = manager;
+        try {
+            this.socket = new ServerSocket(DEFAULT_PORT);
+        } catch (IOException e) {
+            log.error("Error while creating ServerSocket", e);
+        }
+        this.start();
     }
 
     /**
@@ -53,15 +50,28 @@ public class NodeServer extends Threaded {
 
     @Override
     public void run() {
-        try {
-        } catch (Exception e) {
-            log.error("ServerSocket thread crashed: ", e);
-        } finally {
+        while (this.run) {
             try {
-                this.socket.close();
+                // TODO: create node connection on client connection
+                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                if (!this.manager.nodeInHash(nodeSocket.getIp())) {
+                    log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
+                    new NodeIdentification(nodeSocket, this.manager);
+                } else {
+                    NodeConnection nodeConnection = new NodeConnection(new Node(0 + NodeManager.counter, nodeSocket.getIp()), nodeSocket, this.manager);
+                    NodeManager.counter++;
+                    this.manager.addNewConnection(nodeConnection);
+                    log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
+                }
+                // TODO: use internal packets to check for nodes
             } catch (Exception e) {
-                log.error("failed to close ServerSocket: ", e);
+                log.error("Error in NodeServer run", e);
             }
+        }
+        try {
+            this.socket.close();
+        } catch (Exception e) {
+            log.error("failed to close ServerSocket: ", e);
         }
     }
 }

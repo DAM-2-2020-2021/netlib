@@ -2,7 +2,6 @@ package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
-import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketParser;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
@@ -18,16 +17,16 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
-    private final Integer id;
     private final Node node;
     private final NodeSocket socket;
-    private final PacketManager manager;
+    private final NodeManager manager;
+    private final NodeChannel nodeChannel = new NodeChannel(this);
 
-    protected NodeConnection(Integer id, Node node, NodeSocket socket, PacketManager manager) {
-        this.id = id;
+    public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
+        this.start();
     }
 
     /**
@@ -40,12 +39,12 @@ public class NodeConnection extends Threaded {
     }
 
     /**
-     * Get PacketManager.
+     * Get NodeSocket.
      *
-     * @return current PacketManager
+     * @return NodeConnection's NodeSocket
      */
-    public PacketManager getManager() {
-        return manager;
+    public NodeSocket getNodeSocket() {
+        return socket;
     }
 
     /**
@@ -64,7 +63,7 @@ public class NodeConnection extends Threaded {
             PacketParser parser = PacketParser.getInstance();
             byte[] data = parser.serialize(object);
             if (data == null) return false;
-            Packet packet = Packet.create(type, this.id, this.node.getId(), data);
+            Packet packet = Packet.create(type, this.manager.getId(), this.node.getId(), data);
             this.socket.write(packet.dump());
             return true;
         } catch (Exception e) {
@@ -75,5 +74,6 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
+        // TODO: thread routine (rebre packets)
     }
 }

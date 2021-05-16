@@ -53,6 +53,14 @@ public abstract class Threaded implements Runnable {
         this.paused = false;
     }
 
+    public void sleep(int delay){
+        try {
+            this.thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Wait for the thread to end.
      *
