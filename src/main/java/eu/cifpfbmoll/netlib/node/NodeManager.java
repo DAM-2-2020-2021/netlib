@@ -45,9 +45,9 @@ public class NodeManager {
     }
 
     /**
-     * Create a Node
+     * Create a NodeManager with ID and specify if the server should be started.
      *
-     * @param id NodeManager id
+     * @param id     NodeManager id
      * @param server boolean value to create NodeServer or not
      * @throws IOException if NodeServer initialization fails
      */
@@ -56,7 +56,7 @@ public class NodeManager {
     }
 
     /**
-     * Create a NodeManager with default values.
+     * Create a NodeManager with ID.
      *
      * @param id NodeManager id
      * @throws IOException if NodeServer initialization fails
@@ -70,6 +70,7 @@ public class NodeManager {
      *
      * @param id     target node id
      * @param packet packet object to send
+     * @return true if send was successful, false otherwise
      */
     public boolean send(Integer id, Object packet) {
         NodeConnection conn = nodeConnectionById(id);
@@ -85,6 +86,32 @@ public class NodeManager {
             }
         }
         return conn.send(packet);
+    }
+
+    /**
+     * Connect and send a Packet object to an other node with ip.
+     *
+     * <p>This method does not check if the target machine
+     * is running the same program and won't be added to the
+     * NodeConnection's list, this might cause issues.
+     * Use at your own risk.</p>
+     *
+     * @param ip     target node ip
+     * @param port   target node port
+     * @param packet packet object to send
+     * @return NodeConnection or null if the operation failed
+     */
+    public NodeConnection send(String ip, int port, Object packet) {
+        NodeConnection conn = null;
+        try {
+            NodeSocket socket = new NodeSocket(ip, port);
+            conn = new NodeConnection(new Node(-1, ip), socket, this);
+            conn.send(packet);
+        } catch (Exception e) {
+            log.error("failed to create connection with ", e);
+            return null;
+        }
+        return conn;
     }
 
     /**
@@ -120,8 +147,18 @@ public class NodeManager {
      * @param id node ID
      * @return node IP address or null if no entry was found for ID
      */
-    public String getIP(Integer id) {
+    public String getNodeIPById(Integer id) {
         return this.nodes.get(id);
+    }
+
+    /**
+     * Check if an IP is present inside the node's list.
+     *
+     * @param ip Node's ip to check
+     * @return true if ip is present, false otherwise
+     */
+    public boolean isIpPresent(String ip) {
+        return this.nodes.containsValue(ip);
     }
 
     /**
