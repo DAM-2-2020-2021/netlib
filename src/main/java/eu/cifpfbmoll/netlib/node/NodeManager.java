@@ -46,7 +46,11 @@ public class NodeManager {
         });
     }
 
-    public void setUpConnection(NodeConnection nodeConnection) {
+    /**
+     * Restarts communications between 2 players.
+     * @param nodeConnection
+     */
+    public synchronized void setUpConnection(NodeConnection nodeConnection) {
         int id = nodeConnection.getNode().getId();
         String ip = this.nodes.get(id);
         this.nodeConnectionsList.remove(nodeConnection);
