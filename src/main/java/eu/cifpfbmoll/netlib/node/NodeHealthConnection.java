@@ -41,9 +41,10 @@ public class NodeHealthConnection extends Threaded {
             this.acknowledgmentReceived = false;
             DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
             outputStream.writeUTF("Can you hear me?");
+            log.info("Sending Acknowledgement");
             outputStream.flush();
         } catch (IOException e) {
-            log.info("Sending Acknowledgement");
+            log.error("Problem sending Acknowledgement");
         }
     }
 
@@ -54,8 +55,10 @@ public class NodeHealthConnection extends Threaded {
     private void tryFeedback() {
         for (int i = 0; i < this.communicationAttempts && !this.acknowledgmentReceived; i++) {
             this.sleep(this.DELAY);
+            log.info("Trying feedback attemp: " + i);
         }
         if (!this.acknowledgmentReceived) {
+            log.info("Missing acknowledgement. Removing");
             this.nodeChannel.quitSocket();
         }
     }
@@ -67,5 +70,6 @@ public class NodeHealthConnection extends Threaded {
             this.sendAcknowledgment();
             this.tryFeedback();
         }
+        this.nodeChannel.quitSocket();
     }
 }

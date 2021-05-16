@@ -44,6 +44,7 @@ public class NodeChannel extends Threaded {
             System.out.println("Problemas quitando el socket de Channel");
             e.printStackTrace();
         }
+        notifyAll();
     }
 
     /**
@@ -64,10 +65,12 @@ public class NodeChannel extends Threaded {
             } else if (message == null) {
                 log.info("Message content null, establishing new connexion");
                 this.healthyChannel = false;
+                this.quitSocket();
             }
         } catch (IOException e) {
             log.error("Error getting dataInputStream from socket", e);
             this.healthyChannel=false;
+            this.quitSocket();
         }
     }
 
