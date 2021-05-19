@@ -17,18 +17,18 @@ import java.util.Map;
 // TODO: Implement list of NodeConnections and helper functions (add, remove, getById...)
 
 /**
- * Discover and manage nodes in the network and register
+ * Discover, connect and manage nodes in the network.
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
     private static final int CALL_TIMEOUT = 700;
     private final Map<Integer, String> nodes = new HashMap<>();
-    private final List<NodeConnection> nodeConnectionsList = new ArrayList<>();
+    private final List<NodeConnection> nodeConnections = new ArrayList<>();
     private final Integer id;
+    private final NodeServer nodeServer;
+    private final PacketManager packetManager;
     private String ip;
     private String subnet;
-    private NodeServer nodeServer;
-    private final PacketManager packetManager;
 
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
     public static int counter = 1;
@@ -48,15 +48,6 @@ public class NodeManager {
     }
 
     /**
-     * Get NodeManager's ID.
-     *
-     * @return NodeManager's ID
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
      * Restarts communications between 2 players.
      *
      * @param nodeConnection
@@ -64,9 +55,9 @@ public class NodeManager {
     public synchronized void setUpConnection(NodeConnection nodeConnection) {
         int id = nodeConnection.getNode().getId();
         String ip = this.nodes.get(id);
-        this.nodeConnectionsList.remove(nodeConnection);
+        this.nodeConnections.remove(nodeConnection);
         try {
-            this.nodeConnectionsList.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+            this.nodeConnections.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Problem creating new NoseSocket", e);
         }
@@ -78,7 +69,7 @@ public class NodeManager {
      * @param nodeConnection new NodeConnection.
      */
     public synchronized void addNewConnection(NodeConnection nodeConnection) {
-        this.nodeConnectionsList.add(nodeConnection);
+        this.nodeConnections.add(nodeConnection);
     }
 
     /**
@@ -105,23 +96,79 @@ public class NodeManager {
     }
 
     /**
-     * Creates a new NodeServer and start listening for connections.
-     *
-     * @param port listening port
-     * @return NodeServer instance
-     */
-    public static NodeServer startServer(Integer port) {
-        return null;
-    }
-
-    /**
      * Send a Packet object to an other node with id.
      *
      * @param id     target node id
      * @param packet packet object to send
+     * @return true if send was successful, false otherwise
      */
-    public void send(Integer id, Object packet) {
-        // TODO: Get NodeConnection by id
+    public boolean send(Integer id, Object packet) {
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null) {
+            String ip = this.nodes.get(id);
+            if (ip == null) return false;
+            try {
+                NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
+                conn = new NodeConnection(new Node(id, ip), socket, this);
+            } catch (IOException e) {
+                log.error("failed to create connection with ", e);
+                return false;
+            }
+        }
+        return conn.send(packet);
+    }
+
+    /**
+     * Connect and send a Packet object to an other node with ip.
+     *
+     * <p>This method does not check if the target machine
+     * is running the same program and won't be added to the
+     * NodeConnection's list, this might cause issues.
+     * Use at your own risk.</p>
+     *
+     * @param ip     target node ip
+     * @param port   target node port
+     * @param packet packet object to send
+     * @return NodeConnection or null if the operation failed
+     */
+    public NodeConnection send(String ip, int port, Object packet) {
+        NodeConnection conn = null;
+        try {
+            NodeSocket socket = new NodeSocket(ip, port);
+            conn = new NodeConnection(new Node(-1, ip), socket, this);
+            conn.send(packet);
+        } catch (Exception e) {
+            log.error("failed to create connection with ", e);
+            return null;
+        }
+        return conn;
+    }
+
+    /**
+     * Get PacketManager.
+     *
+     * @return current PacketManager
+     */
+    public PacketManager getPacketManager() {
+        return this.packetManager;
+    }
+
+    /**
+     * Get NodeServer.
+     *
+     * @return current NodeServer
+     */
+    public NodeServer getNodeServer() {
+        return nodeServer;
+    }
+
+    /**
+     * Get Node's id
+     *
+     * @return current node's id
+     */
+    public Integer getId() {
+        return id;
     }
 
     /**
@@ -130,8 +177,18 @@ public class NodeManager {
      * @param id node ID
      * @return node IP address or null if no entry was found for ID
      */
-    public String getIP(Integer id) {
+    public String getNodeIPById(Integer id) {
         return this.nodes.get(id);
+    }
+
+    /**
+     * Check if an IP is present inside the node's list.
+     *
+     * @param ip Node's ip to check
+     * @return true if ip is present, false otherwise
+     */
+    public boolean isIpPresent(String ip) {
+        return this.nodes.containsValue(ip);
     }
 
     /**
@@ -140,7 +197,7 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public void put(Integer id, String ip) {
+    public void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
     }
 
@@ -149,8 +206,64 @@ public class NodeManager {
      *
      * @param id node ID
      */
-    public void remove(Integer id) {
+    public void removeNodeId(Integer id) {
         this.nodes.remove(id);
+    }
+
+    /**
+     * Get NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to look for
+     * @return matching NodeConnection
+     */
+    public NodeConnection nodeConnectionById(Integer id) {
+        NodeConnection nodeConnection = null;
+        for (NodeConnection conn : this.nodeConnections) {
+            if (conn.getNode().getId().equals(id)) {
+                nodeConnection = conn;
+                break;
+            }
+        }
+        return nodeConnection;
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to remove
+     */
+    public synchronized void removeNodeConnectionById(Integer id) {
+        for (int i = 0; i < this.nodeConnections.size(); i++) {
+            NodeConnection conn = this.nodeConnections.get(i);
+            if (conn.getNode().getId().equals(id)) {
+                this.nodeConnections.remove(i);
+                break;
+            }
+        }
+        notifyAll();
+    }
+
+    /**
+     * Add NodeConnection to NodeConnections list if not present.
+     *
+     * @param nodeConnection NodeConnection to add
+     */
+    public synchronized void addNodeConnection(NodeConnection nodeConnection) {
+        Integer id = nodeConnection.getNode().getId();
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null)
+            this.nodeConnections.add(nodeConnection);
+        log.info("added node connection with id: " + id);
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list.
+     *
+     * @param nodeConnection NodeConnection to remove
+     */
+    public void removeNodeConnection(NodeConnection nodeConnection) {
+        removeNodeConnectionById(nodeConnection.getNode().getId());
     }
 
     /**

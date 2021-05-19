@@ -20,12 +20,13 @@ public class NodeChannel extends Threaded {
     public NodeChannel(NodeConnection nodeConnection) {
         this.nodeConnection = nodeConnection;
         this.healthyChannel = true;
-        this.nodeHealthConnection = new NodeHealthConnection(this,this.nodeConnection);
+        this.nodeHealthConnection = new NodeHealthConnection(this, this.nodeConnection);
         this.start();
     }
 
     /**
      * Informs if channel's health is Ok.
+     *
      * @return True if acknowledgment is received, False otherwise.
      */
     public boolean isChannelOk() {
@@ -69,7 +70,7 @@ public class NodeChannel extends Threaded {
             }
         } catch (IOException e) {
             log.error("Error getting dataInputStream from socket", e);
-            this.healthyChannel=false;
+            this.healthyChannel = false;
             this.quitSocket();
         }
     }

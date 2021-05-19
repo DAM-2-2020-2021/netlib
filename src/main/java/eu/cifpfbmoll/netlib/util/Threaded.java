@@ -53,7 +53,7 @@ public abstract class Threaded implements Runnable {
         this.paused = false;
     }
 
-    public void sleep(int delay){
+    public void sleep(int delay) {
         try {
             this.thread.sleep(delay);
         } catch (InterruptedException e) {

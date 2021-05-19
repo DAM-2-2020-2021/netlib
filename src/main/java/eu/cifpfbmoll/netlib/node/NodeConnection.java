@@ -48,6 +48,15 @@ public class NodeConnection extends Threaded {
     }
 
     /**
+     * Get NodeManager.
+     *
+     * @return current NodeManager
+     */
+    public NodeManager getManager() {
+        return manager;
+    }
+
+    /**
      * Send a PacketObject to the connected node.
      *
      * @param object PacketObject to send
@@ -75,5 +84,16 @@ public class NodeConnection extends Threaded {
     @Override
     public void run() {
         // TODO: thread routine (rebre packets)
+        while (this.run && !this.socket.isClosed()) {
+            try {
+                byte[] data = new byte[1024];
+                int size = this.socket.read(data);
+                Packet packet = Packet.load(data);
+                this.manager.getPacketManager().process(packet);
+            } catch (Exception e) {
+                log.error("NodeConnection channel failed: ", e);
+            }
+        }
+        this.manager.removeNodeConnection(this);
     }
 }

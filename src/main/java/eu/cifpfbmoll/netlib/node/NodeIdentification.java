@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class NodeIdentification extends Threaded {
                 String message = inputStream.readUTF();
                 if ("I am Damn player".equals(message)) {
                     log.info(String.format("Received HelloMessage from %s", nodeSocket.getIp()));
-                    this.nodeManager.put(0+NodeManager.counter, this.nodeSocket.getIp());
+                    this.nodeManager.putNodeId(0 + NodeManager.counter, this.nodeSocket.getIp());
                     NodeManager.counter++;
                 } else {
                     log.info(String.format("%s is not a Damn player", nodeSocket.getIp()));

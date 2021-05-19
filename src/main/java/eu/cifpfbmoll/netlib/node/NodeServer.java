@@ -20,7 +20,7 @@ public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
-    private NodeManager manager;
+    private final NodeManager manager;
 
     /**
      * Creates a new NodeServer with an instance of NodeManager and PacketManager.
@@ -35,17 +35,6 @@ public class NodeServer extends Threaded {
             log.error("Error while creating ServerSocket", e);
         }
         this.start();
-    }
-
-    /**
-     * Create a new NodeServer from an existing ServerSocket.
-     *
-     * @param socket ServerSocket to create NodeServer from
-     * @throws NullPointerException if socket is null
-     */
-    protected NodeServer(ServerSocket socket) throws NullPointerException {
-        if (socket == null) throw new NullPointerException("ServerSocket must not be null");
-        this.socket = socket;
     }
 
     @Override
