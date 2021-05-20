@@ -171,6 +171,11 @@ public class Packet {
             this.resend[tmp.length + i] = id[i].byteValue();
     }
 
+    /**
+     * Serialize packet data to byte array.
+     *
+     * @return Serialized packet as a byte array.
+     */
     public byte[] dump() {
         ByteBuffer bb = ByteBuffer.allocate(this.size());
         byte[] str = this.type.getBytes(CHARSET_ENCODING);

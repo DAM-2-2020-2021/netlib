@@ -27,7 +27,7 @@ public class NodeManager {
     private final Integer id;
     private final NodeServer nodeServer;
     private final PacketManager packetManager;
-    private String ip;
+    private final String ip;
     private String subnet;
 
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
@@ -50,7 +50,7 @@ public class NodeManager {
     /**
      * Restarts communications between 2 players.
      *
-     * @param nodeConnection
+     * @param nodeConnection NodeConnection to reset
      */
     public synchronized void setUpConnection(NodeConnection nodeConnection) {
         int id = nodeConnection.getNode().getId();
@@ -61,6 +61,7 @@ public class NodeManager {
         } catch (IOException e) {
             log.error("Problem creating new NoseSocket", e);
         }
+        notifyAll();
     }
 
     /**
@@ -70,12 +71,13 @@ public class NodeManager {
      */
     public synchronized void addNewConnection(NodeConnection nodeConnection) {
         this.nodeConnections.add(nodeConnection);
+        notifyAll();
     }
 
     /**
      * Verifies if an specific node's ip is registered in Map.
      *
-     * @param ip
+     * @param ip IP to check in nodes HashMap
      * @return True if is in HashMap, False otherwise.
      */
     public boolean nodeInHash(String ip) {
@@ -85,7 +87,7 @@ public class NodeManager {
     /**
      * Creates a new NodeClient instance from a discovered ip.
      *
-     * @param ip
+     * @param ip Node destination IP
      */
     private void createNodeClient(String ip) {
         try {
@@ -179,16 +181,6 @@ public class NodeManager {
      */
     public String getNodeIPById(Integer id) {
         return this.nodes.get(id);
-    }
-
-    /**
-     * Check if an IP is present inside the node's list.
-     *
-     * @param ip Node's ip to check
-     * @return true if ip is present, false otherwise
-     */
-    public boolean isIpPresent(String ip) {
-        return this.nodes.containsValue(ip);
     }
 
     /**

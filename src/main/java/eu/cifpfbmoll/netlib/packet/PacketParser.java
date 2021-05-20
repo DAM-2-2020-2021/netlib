@@ -44,14 +44,49 @@ public class PacketParser {
      * a specific Object type using TypeHandler.</p>
      */
     private static final class TypeInfo {
-        public final SizeHandler size;
-        public final TypeHandler serializer;
-        public final TypeHandler deserializer;
+        private final SizeHandler size;
+        private final TypeHandler serializer;
+        private final TypeHandler deserializer;
 
         public TypeInfo(SizeHandler size, TypeHandler serializer, TypeHandler deserializer) {
             this.size = size;
             this.serializer = serializer;
             this.deserializer = deserializer;
+        }
+
+        /**
+         * Get an Object's field size.
+         *
+         * @param object object to get size from
+         * @param field object's field to calculate size
+         * @return field's size
+         */
+        public int size(Object object, Field field) throws IllegalAccessException {
+            return this.size.handle(object, field);
+        }
+
+        /**
+         * Serialize an Object's field with its serializer function.
+         *
+         * @param object object to serialize
+         * @param field field to serialize
+         * @param bb ByteBuffer used to store serialized data
+         */
+        public void serialize(Object object, Field field, ByteBuffer bb) throws IllegalAccessException {
+            if (this.serializer != null)
+                this.serializer.handle(object, field, bb);
+        }
+
+        /**
+         * Deserialize an Object's field with its deserializer function.
+         *
+         * @param object object to deserialize
+         * @param field field to deserialize
+         * @param bb ByteBuffer used where the serialized data is stored
+         */
+        public void deserialize(Object object, Field field, ByteBuffer bb) throws IllegalAccessException {
+            if (this.deserializer != null)
+                this.deserializer.handle(object, field, bb);
         }
     }
 

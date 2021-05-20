@@ -13,8 +13,8 @@ import java.io.IOException;
  */
 public class NodeChannel extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeChannel.class);
-    private NodeConnection nodeConnection;
-    private NodeHealthConnection nodeHealthConnection;
+    private final NodeConnection nodeConnection;
+    private final NodeHealthConnection nodeHealthConnection;
     private boolean healthyChannel;
 
     public NodeChannel(NodeConnection nodeConnection) {

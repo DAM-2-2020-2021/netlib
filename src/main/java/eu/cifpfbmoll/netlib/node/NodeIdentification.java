@@ -27,12 +27,12 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run) {
             try {
+                // TODO: Implement hello packets
                 DataInputStream inputStream = new DataInputStream(this.nodeSocket.getSocket().getInputStream());
                 String message = inputStream.readUTF();
                 if ("I am Damn player".equals(message)) {
                     log.info(String.format("Received HelloMessage from %s", nodeSocket.getIp()));
-                    this.nodeManager.putNodeId(0 + NodeManager.counter, this.nodeSocket.getIp());
-                    NodeManager.counter++;
+                    this.nodeManager.putNodeId(NodeManager.counter++, this.nodeSocket.getIp());
                 } else {
                     log.info(String.format("%s is not a Damn player", nodeSocket.getIp()));
                 }

@@ -9,11 +9,11 @@ import java.io.IOException;
 
 public class NodeHealthConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeHealthConnection.class);
+    private static final int COMMUNICATION_ATTEMPTS = 5;
+    private static final int DELAY = 300;
+    private final NodeChannel nodeChannel;
+    private final NodeConnection nodeConnection;
     private boolean acknowledgmentReceived;
-    private int communicationAttempts = 5;
-    private final int DELAY = 300;
-    private NodeChannel nodeChannel;
-    private NodeConnection nodeConnection;
 
     /**
      * Creates nodeHealhConnection instance.
@@ -53,8 +53,8 @@ public class NodeHealthConnection extends Threaded {
      * it will remove the socket of Channel class.
      */
     private void tryFeedback() {
-        for (int i = 0; i < this.communicationAttempts && !this.acknowledgmentReceived; i++) {
-            this.sleep(this.DELAY);
+        for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.acknowledgmentReceived; i++) {
+            this.sleep(DELAY);
             log.info("Trying feedback attemp: " + i);
         }
         if (!this.acknowledgmentReceived) {

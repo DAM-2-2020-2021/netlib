@@ -41,18 +41,15 @@ public class NodeServer extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                // TODO: create node connection on client connection
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
                 if (!this.manager.nodeInHash(nodeSocket.getIp())) {
                     log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
                     new NodeIdentification(nodeSocket, this.manager);
                 } else {
-                    NodeConnection nodeConnection = new NodeConnection(new Node(0 + NodeManager.counter, nodeSocket.getIp()), nodeSocket, this.manager);
-                    NodeManager.counter++;
+                    NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
                     this.manager.addNewConnection(nodeConnection);
                     log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
                 }
-                // TODO: use internal packets to check for nodes
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);
             }

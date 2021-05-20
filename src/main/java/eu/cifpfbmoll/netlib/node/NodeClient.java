@@ -12,12 +12,12 @@ import java.io.IOException;
  */
 public class NodeClient extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
+    private static final int ATTEMPTS = 10;
+    private static final int DELAY = 300;
+    private final String ip;
+    private final NodeSocket nodeSocket;
+    private final NodeManager nodeManager;
     private boolean identifiedPlayer = false;
-    private final int ATTEMPTS = 10;
-    private String ip;
-    private final int DELAY = 300;
-    private NodeSocket nodeSocket;
-    private NodeManager nodeManager;
 
     /**
      * Creates NodeClient instance with given parameters.
@@ -51,7 +51,7 @@ public class NodeClient extends Threaded {
         while (!this.identifiedPlayer) {
             for (int i = 0; i < ATTEMPTS; i++) {
                 this.tryFeedback();
-                this.sleep(this.DELAY);
+                this.sleep(DELAY);
                 this.identifiedPlayer = this.nodeManager.nodeInHash(this.ip);
             }
             this.identifiedPlayer = true;
