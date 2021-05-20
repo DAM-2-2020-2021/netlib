@@ -88,6 +88,7 @@ public class NodeConnection extends Threaded {
             try {
                 byte[] data = new byte[1024];
                 int size = this.socket.read(data);
+                if (size < 0) continue;
                 Packet packet = Packet.load(data);
                 this.manager.getPacketManager().process(packet);
             } catch (Exception e) {

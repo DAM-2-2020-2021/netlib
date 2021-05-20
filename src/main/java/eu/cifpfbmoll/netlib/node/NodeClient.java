@@ -1,10 +1,10 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -38,9 +38,8 @@ public class NodeClient extends Threaded {
      */
     private void tryFeedback() {
         try {
-            DataOutputStream outputStream = new DataOutputStream(this.nodeSocket.getSocket().getOutputStream());
-            outputStream.writeUTF("I am Damn player");
-            outputStream.flush();
+            Packet hello = Packet.create("HELO", this.nodeManager.getId(), 0);
+            this.nodeSocket.write(hello.dump());
         } catch (IOException e) {
             log.error("Problem sending hello message", e);
         }

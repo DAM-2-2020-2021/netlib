@@ -46,9 +46,10 @@ public class NodeServer extends Threaded {
                     log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
                     new NodeIdentification(nodeSocket, this.manager);
                 } else {
-                    NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
+                    Integer nodeID = this.manager.getNodeIdByIP(nodeSocket.getIp());
+                    NodeConnection nodeConnection = new NodeConnection(new Node(nodeID, nodeSocket.getIp()), nodeSocket, this.manager);
                     this.manager.addNewConnection(nodeConnection);
-                    log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
+                    log.info(String.format("New NodeConnection added! %s", nodeSocket.getIp()));
                 }
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);

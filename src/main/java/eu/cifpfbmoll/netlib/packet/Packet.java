@@ -79,6 +79,22 @@ public class Packet {
     }
 
     /**
+     * Create a new Packet without specifying the Time to Live field
+     * and the resend ID.
+     *
+     * <p>Time to Live will have its default value.
+     * The resend ID will be the same as the source ID.</p>
+     *
+     * @param type packet type
+     * @param src  source node id
+     * @param dst  destination node id
+     * @return new Packet instance
+     */
+    public static Packet create(String type, Integer src, Integer dst) {
+        return Packet.create(type, DEFAULT_TTL_VALUE, src, dst, new Integer[]{src}, new byte[0]);
+    }
+
+    /**
      * Create a new Packet from a byte array.
      *
      * @param bytes byte array to load packet from

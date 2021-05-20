@@ -3,6 +3,7 @@ package eu.cifpfbmoll.netlib.node;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Runner;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +30,6 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
-
-    //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
-    public static int counter = 1;
 
     /**
      * Creates a NodeManager instance with the user's given ip.
@@ -181,6 +179,19 @@ public class NodeManager {
      */
     public String getNodeIPById(Integer id) {
         return this.nodes.get(id);
+    }
+
+    /**
+     * Get Node's ID by its IP.
+     *
+     * @param ip Node's IP
+     * @return Node's ID or null if no matching IP was found
+     */
+    public Integer getNodeIdByIP(String ip) {
+        for (Integer id : this.nodes.keySet())
+            if (StringUtils.equals(this.nodes.get(id), ip))
+                return id;
+        return null;
     }
 
     /**

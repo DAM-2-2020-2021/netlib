@@ -1,11 +1,11 @@
 package eu.cifpfbmoll.netlib.node;
 
 
+import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
@@ -16,7 +16,6 @@ public class NodeIdentification extends Threaded {
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
 
-    //TODO: give NodeIdentification the id of the new connection
     public NodeIdentification(NodeSocket nodeSocket, NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
@@ -28,13 +27,15 @@ public class NodeIdentification extends Threaded {
         while (this.run) {
             try {
                 // TODO: Implement hello packets
-                DataInputStream inputStream = new DataInputStream(this.nodeSocket.getSocket().getInputStream());
-                String message = inputStream.readUTF();
-                if ("I am Damn player".equals(message)) {
-                    log.info(String.format("Received HelloMessage from %s", nodeSocket.getIp()));
-                    this.nodeManager.putNodeId(NodeManager.counter++, this.nodeSocket.getIp());
+                byte[] data = new byte[1024];
+                int size = this.nodeSocket.read(data);
+                if (size < 0) continue;
+                Packet packet = Packet.load(data);
+                if (packet.type.equals("HELO")) {
+                    log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
+                    this.nodeManager.putNodeId((int) packet.src, this.nodeSocket.getIp());
                 } else {
-                    log.info(String.format("%s is not a Damn player", nodeSocket.getIp()));
+                    log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
                 }
                 this.run = false;
             } catch (IOException e) {
