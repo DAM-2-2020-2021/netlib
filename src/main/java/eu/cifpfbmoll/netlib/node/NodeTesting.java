@@ -21,6 +21,7 @@ public class NodeTesting extends Threaded {
         this.serverIp=ip;
         this.nodeManager=nodeManager;
         this.port=port;
+        this.start();
     }
 
     private void sendAcknowledgment(){
