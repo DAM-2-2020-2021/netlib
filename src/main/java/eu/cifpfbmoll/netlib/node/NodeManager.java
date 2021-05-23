@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
-    private static final int CALL_TIMEOUT = 700;
+    private static final int CALL_TIMEOUT = 1500;
     private final Map<Integer, String> nodes = new HashMap<>();
     private final List<NodeConnection> nodeConnections = new ArrayList<>();
     private final Integer id;
@@ -302,7 +302,7 @@ public class NodeManager {
             String host = subnet + "." + i;
             Runner<String> runner = new Runner<>(host, ip -> {
                 try {
-                    log.info("trying: " + ip);
+                    //log.info("trying: " + ip);
                     if (!ip.equals(this.ip)) {
                         if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
                             log.info(String.format("%s is reachable", ip));
