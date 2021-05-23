@@ -29,6 +29,7 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
+    private NodeTesting nodeTesting;
 
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
     public static int counter = 1;
@@ -44,7 +45,7 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
-        new NodeTesting("192.168.1.102",9999,this);
+        this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
         //this.discover();
     }
 
@@ -324,11 +325,11 @@ public class NodeManager {
         });
     }
 
-    private void startScan(String ip, Runner runner){
+    private void startScan(String ip, Runner runner) {
 
     }
 
-    private void stopScan(){
+    private void stopScan() {
 
     }
 

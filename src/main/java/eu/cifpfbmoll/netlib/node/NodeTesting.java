@@ -1,7 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.util.Threaded;
-import org.graalvm.compiler.code.DataSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
