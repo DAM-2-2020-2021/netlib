@@ -44,9 +44,8 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
+        new NodeTesting("192.168.1.102",9999,this);
         //this.discover();
-        this.createNodeClient("192.168.1.27");
-        this.createNodeClient("192.168.1.102");
     }
 
     /**
