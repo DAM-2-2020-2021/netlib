@@ -44,7 +44,9 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
-        this.discover();
+        //this.discover();
+        this.createNodeClient("192.168.1.27");
+        this.createNodeClient("192.168.1.102");
     }
 
     /**
@@ -321,6 +323,14 @@ public class NodeManager {
         runners.forEach(runner -> {
             runner.join(CALL_TIMEOUT);
         });
+    }
+
+    private void startScan(String ip, Runner runner){
+
+    }
+
+    private void stopScan(){
+
     }
 
     /**
