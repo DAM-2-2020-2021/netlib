@@ -326,11 +326,12 @@ public class NodeManager {
     }
 
     private void startScan(String ip, Runner runner) {
-
+        // TODO: comprovar totes les ips que no estiguin dins del node HashMap
+        // TODO: Crear List<NodeClient> global per a poder iniciar i aturar els threads
     }
 
     private void stopScan() {
-
+        // TODO: aturar threads NodeClient
     }
 
     /**

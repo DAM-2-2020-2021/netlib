@@ -48,7 +48,7 @@ public class NodeClient extends Threaded {
 
     @Override
     public void run() {
-        while (!this.identifiedPlayer) {
+        while (!this.identifiedPlayer && this.run) {
             for (int i = 0; i < ATTEMPTS; i++) {
                 this.tryFeedback();
                 this.sleep(DELAY);
