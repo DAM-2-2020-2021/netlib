@@ -45,8 +45,8 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
-        this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
-        //this.discover();
+        //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
+        this.discover();
     }
 
     /**
@@ -299,7 +299,7 @@ public class NodeManager {
      */
     public void discover() {
         // TODO: Find out why runners do not find reachable IP's
-        List<Runner<String>> runners = new ArrayList<>();
+        /*List<Runner<String>> runners = new ArrayList<>();
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             Runner<String> runner = new Runner<>(host, ip -> {
@@ -322,7 +322,13 @@ public class NodeManager {
         }
         runners.forEach(runner -> {
             runner.join(CALL_TIMEOUT);
-        });
+        });*/
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip)) {
+                this.createNodeClient(host);
+            }
+        }
     }
 
     private void startScan(String ip, Runner runner) {

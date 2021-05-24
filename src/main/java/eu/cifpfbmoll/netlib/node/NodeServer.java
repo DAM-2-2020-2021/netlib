@@ -4,6 +4,7 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -44,21 +45,19 @@ public class NodeServer extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                Socket clientSocket = this.socket.accept();
-                log.info("Creating connection with: " + clientSocket.getInetAddress().getHostAddress());
-                DataInputStream inputStream=new DataInputStream(clientSocket.getInputStream());
-                String message=inputStream.readUTF();
-                if(message.equals("Hellou!")){
-                    DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                    outputStream.writeUTF("Hi there!");
-                    outputStream.flush();
-                }
-                /*NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
                 log.info("Creating connection with: " + nodeSocket.getIp());
                 if (!this.manager.nodeInHash(nodeSocket.getIp())) {
                     log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
-                    new NodeIdentification(nodeSocket, this.manager);
-                } else {
+                    //new NodeIdentification(nodeSocket, this.manager);
+                    DataInputStream inputStream=new DataInputStream(nodeSocket.getSocket().getInputStream());
+                    String message=inputStream.readUTF();
+                    if(message.equals("I am Damn player")){
+                        DataOutputStream outputStream=new DataOutputStream(nodeSocket.getSocket().getOutputStream());
+                        outputStream.writeUTF("Welcome");
+                        outputStream.flush();
+                    }
+                } /*else {
                     NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
                     this.manager.addNewConnection(nodeConnection);
                     log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
