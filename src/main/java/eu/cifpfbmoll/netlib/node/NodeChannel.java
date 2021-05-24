@@ -21,6 +21,7 @@ public class NodeChannel extends Threaded {
         this.nodeConnection = nodeConnection;
         this.healthyChannel = true;
         this.nodeHealthConnection = new NodeHealthConnection(this, this.nodeConnection);
+        log.info("NodeChannel created for "+this.nodeConnection.getNode().getIp());
         this.start();
     }
 

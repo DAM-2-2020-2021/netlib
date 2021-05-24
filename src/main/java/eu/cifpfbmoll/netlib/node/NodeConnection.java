@@ -26,6 +26,7 @@ public class NodeConnection extends Threaded {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
+        log.info("New NodeConnection created with " + this.node.getIp());
         this.start();
     }
 

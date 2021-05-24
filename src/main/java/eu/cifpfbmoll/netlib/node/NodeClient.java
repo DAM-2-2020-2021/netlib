@@ -46,7 +46,10 @@ public class NodeClient extends Threaded {
             String message = inputStream.readUTF();
             if (message.equals("Welcome")) {
                 log.info("NodeSocket " + this.nodeSocket.getIp() + " has been identified successfully!");
-                this.nodeManager.putNodeId(NodeManager.counter, this.nodeSocket.getIp());
+                int id = NodeManager.counter;
+                this.nodeManager.putNodeId(id, this.nodeSocket.getIp());
+                NodeConnection nodeConnection = new NodeConnection(new Node(id, this.nodeSocket.getIp()), this.nodeSocket, this.nodeManager);
+                this.nodeManager.addNewConnection(nodeConnection);
                 NodeManager.counter++;
                 this.identifiedPlayer = true;
             }
