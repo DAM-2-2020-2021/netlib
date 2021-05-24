@@ -3,6 +3,7 @@ package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.util.Threaded;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +32,9 @@ public class NodeIdentification extends Threaded {
                 int size = this.nodeSocket.read(data);
                 if (size < 0) continue;
                 Packet packet = Packet.load(data);
-                if (packet.type.equals("HELO")) {
+                if (StringUtils.equals(packet.getType(), "HELO")) {
                     log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
-                    this.nodeManager.putNodeId((int) packet.src, this.nodeSocket.getIp());
+                    this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
                 } else {
                     log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
                 }

@@ -20,12 +20,12 @@ public class Packet {
     public static final int PACKET_TTL_SIZE = 1;
     public static final int PACKET_ID_SIZE = 1;
 
-    public String type;
-    public byte ttl;
-    public byte src;
-    public byte dst;
-    public byte[] resend;
-    public byte[] data;
+    private String type;
+    private byte ttl;
+    private byte src;
+    private byte dst;
+    private byte[] resend;
+    private byte[] data;
 
     /**
      * Create a new Packet with all parameters.
@@ -157,6 +157,132 @@ public class Packet {
     }
 
     /**
+     * Get source node ID.
+     *
+     * @return source node ID
+     */
+    public Integer getSourceId() {
+        return this.src & 0xff;
+    }
+
+    /**
+     * Set source node ID
+     *
+     * @param id new source node ID
+     */
+    public void setSourceId(Integer id) {
+        this.src = id.byteValue();
+    }
+
+    /**
+     * Set destination node ID
+     *
+     * @return destination node ID
+     */
+    public Integer getDestinationId() {
+        return this.dst & 0xff;
+    }
+
+    /**
+     * Set destination node ID
+     *
+     * @param id new destination node ID
+     */
+    public void setDestinationId(Integer id) {
+        this.dst = id.byteValue();
+    }
+
+    /**
+     * Get all resender IDs.
+     *
+     * @return array with all resender ids
+     */
+    public Integer[] getResenderIds() {
+        Integer[] ids = new Integer[this.resend.length];
+        for (int i = 0; i < ids.length; i++)
+            ids[i] = (int) this.resend[i];
+        return ids;
+    }
+
+    /**
+     * Set all resender IDs.
+     *
+     * @param ids new resender IDs.
+     */
+    public void setResenderIds(Integer... ids) {
+        this.resend = new byte[ids.length];
+        for (int i = 0; i < ids.length; i++)
+            this.resend[i] = ids[i].byteValue();
+    }
+
+    /**
+     * Add resenders IDs to packet header.
+     *
+     * @param ids new resender ids
+     */
+    public void addResender(Integer... ids) {
+        byte[] tmp = this.resend.clone();
+        this.resend = new byte[this.resend.length + PACKET_ID_SIZE * ids.length];
+        System.arraycopy(tmp, 0, this.resend, 0, tmp.length);
+        for (int i = 0; i < ids.length; i++)
+            this.resend[tmp.length + i] = ids[i].byteValue();
+    }
+
+    /**
+     * Get current TTL.
+     *
+     * @return TTL value
+     */
+    public byte getTTL() {
+        return ttl;
+    }
+
+    /**
+     * Set current TTL.
+     *
+     * @param ttl TTL value
+     */
+    public void setTTL(byte ttl) {
+        this.ttl = ttl;
+    }
+
+    /**
+     * Get packet type.
+     *
+     * @return packet type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Set packet type.
+     *
+     * @param type new packet type
+     */
+    public void setType(String type) {
+        this.type = formatType(type);
+    }
+
+    /**
+     * Get packet data.
+     *
+     * @return packet data
+     */
+    public byte[] getData() {
+        return data;
+    }
+
+    /**
+     * Set packet data.
+     *
+     * @param data new packet data
+     */
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    /**
      * Get packet's header size.
      *
      * @return packet header size
@@ -172,19 +298,6 @@ public class Packet {
      */
     public int size() {
         return headerSize() + 2 + this.data.length;
-    }
-
-    /**
-     * Add resenders id to packet header.
-     *
-     * @param id new resender id
-     */
-    public void addResender(Integer... id) {
-        byte[] tmp = this.resend.clone();
-        this.resend = new byte[this.resend.length + PACKET_ID_SIZE * id.length];
-        System.arraycopy(tmp, 0, this.resend, 0, tmp.length);
-        for (int i = 0; i < id.length; i++)
-            this.resend[tmp.length + i] = id[i].byteValue();
     }
 
     /**

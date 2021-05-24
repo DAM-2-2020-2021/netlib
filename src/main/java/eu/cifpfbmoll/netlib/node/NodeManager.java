@@ -37,11 +37,15 @@ public class NodeManager {
      * @param ip user's ip.
      */
     public NodeManager(Integer id, String ip) {
+        this(id, ip, true);
+    }
+
+    public NodeManager(Integer id, String ip, boolean server) {
         this.id = id;
         this.ip = ip;
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
-        this.nodeServer = new NodeServer(this);
+        this.nodeServer = server ? new NodeServer(this) : null;
         this.discover();
     }
 
@@ -91,7 +95,7 @@ public class NodeManager {
         try {
             new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
         } catch (IOException e) {
-            log.error("Error creating a socket for NodeClient", e);
+            log.error("Error creating a socket for NodeClient");
         }
     }
 
@@ -202,6 +206,7 @@ public class NodeManager {
      */
     public void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
+        log.info(String.format("added node: %d - %s", id, ip));
     }
 
     /**
@@ -313,7 +318,6 @@ public class NodeManager {
             String host = subnet + "." + i;
             Runner<String> runner = new Runner<>(host, ip -> {
                 try {
-                    log.info("trying: " + ip);
                     if (!ip.equals(this.ip)) {
                         if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
                             log.info(String.format("%s is reachable", ip));

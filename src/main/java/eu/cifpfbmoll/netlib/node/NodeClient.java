@@ -41,7 +41,7 @@ public class NodeClient extends Threaded {
             Packet hello = Packet.create("HELO", this.nodeManager.getId(), 0);
             this.nodeSocket.write(hello.dump());
         } catch (IOException e) {
-            log.error("Problem sending hello message", e);
+            log.error("Problem sending hello message to " + this.nodeSocket.getIp());
         }
     }
 
