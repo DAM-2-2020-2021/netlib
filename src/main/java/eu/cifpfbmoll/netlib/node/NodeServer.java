@@ -53,6 +53,7 @@ public class NodeServer extends Threaded {
                     DataInputStream inputStream=new DataInputStream(nodeSocket.getSocket().getInputStream());
                     String message=inputStream.readUTF();
                     if(message.equals("I am Damn player")){
+                        log.info("Hello message received from: "+nodeSocket.getIp());
                         DataOutputStream outputStream=new DataOutputStream(nodeSocket.getSocket().getOutputStream());
                         outputStream.writeUTF("Welcome");
                         outputStream.flush();

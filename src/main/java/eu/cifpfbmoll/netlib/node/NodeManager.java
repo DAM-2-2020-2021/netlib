@@ -45,7 +45,8 @@ public class NodeManager {
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
         //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
-        this.discover();
+        //this.discover();
+        this.createNodeClient("192.168.1.27");
     }
 
     /**
