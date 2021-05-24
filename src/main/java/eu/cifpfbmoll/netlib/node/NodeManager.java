@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +28,7 @@ public class NodeManager {
     private final String ip;
     private String subnet;
     private NodeTesting nodeTesting;
+    private final List<NodeClient> clientList = new ArrayList<>();
 
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
     public static int counter = 1;
@@ -93,7 +92,7 @@ public class NodeManager {
      */
     private void createNodeClient(String ip) {
         try {
-            new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
+            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
         }
