@@ -1,5 +1,5 @@
 # netlib
-## How to use
+## Download
 This project uses [GitHub Packages](https://github.com/DAM-2-2020-2021/netlib/packages/) so that it can be added as a Maven dependency on your `pom.xml`:
 ```
 <dependency>
