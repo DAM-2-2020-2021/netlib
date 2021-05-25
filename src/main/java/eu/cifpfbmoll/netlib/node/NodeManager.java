@@ -45,8 +45,8 @@ public class NodeManager {
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
         //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
-        //this.discover();
-        this.createNodeClient("192.168.1.27");
+        this.discover();
+        //this.createNodeClient("192.168.1.27");
     }
 
     /**
@@ -335,10 +335,20 @@ public class NodeManager {
     private void startScan(String ip, Runner runner) {
         // TODO: comprovar totes les ips que no estiguin dins del node HashMap
         // TODO: Crear List<NodeClient> global per a poder iniciar i aturar els threads
+        // TODO: És neccesari emplear els Runners?
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip) && !this.nodes.containsKey(host)) {
+                this.createNodeClient(host);
+            }
+        }
     }
 
     private void stopScan() {
         // TODO: aturar threads NodeClient
+        for(NodeClient client:this.clientList){
+            client.stop();
+        }
     }
 
     /**
