@@ -32,7 +32,7 @@ public class NodeIdentification extends Threaded {
                 String message = inputStream.readUTF();
                 if ("I am Damn player".equals(message)) {
                     log.info(String.format("Received HelloMessage from %s", nodeSocket.getIp()));
-                    this.nodeManager.putNodeId(NodeManager.counter++, this.nodeSocket.getIp());
+                    this.nodeManager.putNodeId(NodeManager.getMyId(this.nodeSocket.getIp()), this.nodeSocket.getIp());
                 } else {
                     log.info(String.format("%s is not a Damn player", nodeSocket.getIp()));
                 }

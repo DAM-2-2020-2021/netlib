@@ -46,11 +46,10 @@ public class NodeClient extends Threaded {
             String message = inputStream.readUTF();
             if (message.equals("Welcome")) {
                 log.info("NodeSocket " + this.nodeSocket.getIp() + " has been identified successfully!");
-                int id = NodeManager.counter;
+                int id = NodeManager.getMyId(this.nodeSocket.getIp());
                 this.nodeManager.putNodeId(id, this.nodeSocket.getIp());
                 NodeConnection nodeConnection = new NodeConnection(new Node(id, this.nodeSocket.getIp()), this.nodeSocket, this.nodeManager);
                 this.nodeManager.addNewConnection(nodeConnection);
-                NodeManager.counter++;
                 this.identifiedPlayer = true;
             }
         } catch (IOException e) {
@@ -61,12 +60,8 @@ public class NodeClient extends Threaded {
     @Override
     public void run() {
         while (!this.identifiedPlayer) {
-            for (int i = 0; i < ATTEMPTS; i++) {
-                this.tryFeedback();
-                this.sleep(DELAY);
-            }
-            log.info("NodeSocket " + this.nodeSocket.getIp() + " did not answer");
-            this.identifiedPlayer = true;
+            this.tryFeedback();
+            this.sleep(DELAY);
         }
     }
 }

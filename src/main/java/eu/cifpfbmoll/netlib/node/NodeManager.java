@@ -27,26 +27,26 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
-    private NodeTesting nodeTesting;
     private final List<NodeClient> clientList = new ArrayList<>();
-
-    //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
-    public static int counter = 1;
 
     /**
      * Creates a NodeManager instance with the user's given ip.
      *
      * @param ip user's ip.
      */
-    public NodeManager(Integer id, String ip) {
-        this.id = id;
+    public NodeManager(String ip) {
+        this.id = getMyId(ip);
         this.ip = ip;
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
-        //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
-        this.discover();
-        //this.createNodeClient("192.168.1.27");
+        //this.discover();
+        this.createNodeClient("192.168.1.27");
+    }
+
+    public static int getMyId(String ip) {
+        String[] splitIp = ip.split("\\.");
+        return Integer.parseInt(splitIp[3]);
     }
 
     /**
@@ -346,7 +346,7 @@ public class NodeManager {
 
     private void stopScan() {
         // TODO: aturar threads NodeClient
-        for(NodeClient client:this.clientList){
+        for (NodeClient client : this.clientList) {
             client.stop();
         }
     }
