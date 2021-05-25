@@ -23,6 +23,7 @@ public class NodeHealthConnection extends Threaded {
     public NodeHealthConnection(NodeChannel nodeChannel, NodeConnection nodeConnection) {
         this.nodeConnection = nodeConnection;
         this.nodeChannel = nodeChannel;
+        log.info("NodeHealthConnection created!");
         this.start();
     }
 

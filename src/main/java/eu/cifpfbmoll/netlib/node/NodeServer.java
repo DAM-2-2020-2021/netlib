@@ -4,8 +4,12 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.crypto.Data;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * The NodeServer Class listens for incoming Node connections and assigns them a new NodeConnection.
@@ -42,14 +46,23 @@ public class NodeServer extends Threaded {
         while (this.run) {
             try {
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                log.info("Creating connection with: " + nodeSocket.getIp());
                 if (!this.manager.nodeInHash(nodeSocket.getIp())) {
                     log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
-                    new NodeIdentification(nodeSocket, this.manager);
-                } else {
+                    //new NodeIdentification(nodeSocket, this.manager);
+                    DataInputStream inputStream=new DataInputStream(nodeSocket.getSocket().getInputStream());
+                    String message=inputStream.readUTF();
+                    if(message.equals("I am Damn player")){
+                        log.info("Hello message received from: "+nodeSocket.getIp());
+                        DataOutputStream outputStream=new DataOutputStream(nodeSocket.getSocket().getOutputStream());
+                        outputStream.writeUTF("Welcome");
+                        outputStream.flush();
+                    }
+                } /*else {
                     NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
                     this.manager.addNewConnection(nodeConnection);
                     log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
-                }
+                }*/
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);
             }

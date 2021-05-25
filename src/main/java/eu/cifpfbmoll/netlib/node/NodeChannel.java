@@ -21,6 +21,7 @@ public class NodeChannel extends Threaded {
         this.nodeConnection = nodeConnection;
         this.healthyChannel = true;
         this.nodeHealthConnection = new NodeHealthConnection(this, this.nodeConnection);
+        log.info("NodeChannel created!");
         this.start();
     }
 
@@ -40,7 +41,7 @@ public class NodeChannel extends Threaded {
         try {
             this.nodeConnection.getNodeSocket().close();
             this.healthyChannel = false;
-            System.out.println("Socket removed");
+            log.info("Removing Socket");
         } catch (IOException e) {
             System.out.println("Problemas quitando el socket de Channel");
             e.printStackTrace();
@@ -77,6 +78,7 @@ public class NodeChannel extends Threaded {
 
     @Override
     public void run() {
+        this.sleep(1000);
         while (this.healthyChannel) {
             this.managingAcknowledgment();
         }

@@ -4,6 +4,7 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -41,6 +42,17 @@ public class NodeClient extends Threaded {
             DataOutputStream outputStream = new DataOutputStream(this.nodeSocket.getSocket().getOutputStream());
             outputStream.writeUTF("I am Damn player");
             outputStream.flush();
+            DataInputStream inputStream = new DataInputStream(this.nodeSocket.getSocket().getInputStream());
+            String message = inputStream.readUTF();
+            if (message.equals("Welcome")) {
+                log.info("NodeSocket " + this.nodeSocket.getIp() + " has been identified successfully!");
+                int id = NodeManager.counter;
+                this.nodeManager.putNodeId(id, this.nodeSocket.getIp());
+                NodeConnection nodeConnection = new NodeConnection(new Node(id, this.nodeSocket.getIp()), this.nodeSocket, this.nodeManager);
+                this.nodeManager.addNewConnection(nodeConnection);
+                NodeManager.counter++;
+                this.identifiedPlayer = true;
+            }
         } catch (IOException e) {
             log.error("Problem sending hello message", e);
         }
@@ -52,8 +64,8 @@ public class NodeClient extends Threaded {
             for (int i = 0; i < ATTEMPTS; i++) {
                 this.tryFeedback();
                 this.sleep(DELAY);
-                this.identifiedPlayer = this.nodeManager.nodeInHash(this.ip);
             }
+            log.info("NodeSocket " + this.nodeSocket.getIp() + " did not answer");
             this.identifiedPlayer = true;
         }
     }

@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +19,7 @@ import java.util.Map;
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
-    private static final int CALL_TIMEOUT = 700;
+    private static final int CALL_TIMEOUT = 1500;
     private final Map<Integer, String> nodes = new HashMap<>();
     private final List<NodeConnection> nodeConnections = new ArrayList<>();
     private final Integer id;
@@ -29,6 +27,8 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
+    private NodeTesting nodeTesting;
+    private final List<NodeClient> clientList = new ArrayList<>();
 
     //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
     public static int counter = 1;
@@ -44,7 +44,9 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
+        //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
         this.discover();
+        //this.createNodeClient("192.168.1.27");
     }
 
     /**
@@ -53,6 +55,7 @@ public class NodeManager {
      * @param nodeConnection NodeConnection to reset
      */
     public synchronized void setUpConnection(NodeConnection nodeConnection) {
+        //TODO Ask Serafi if this method is necessary.
         int id = nodeConnection.getNode().getId();
         String ip = this.nodes.get(id);
         this.nodeConnections.remove(nodeConnection);
@@ -91,7 +94,7 @@ public class NodeManager {
      */
     private void createNodeClient(String ip) {
         try {
-            new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
+            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
         }
@@ -297,12 +300,12 @@ public class NodeManager {
      */
     public void discover() {
         // TODO: Find out why runners do not find reachable IP's
-        List<Runner<String>> runners = new ArrayList<>();
+        /*List<Runner<String>> runners = new ArrayList<>();
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
             Runner<String> runner = new Runner<>(host, ip -> {
                 try {
-                    log.info("trying: " + ip);
+                    //log.info("trying: " + ip);
                     if (!ip.equals(this.ip)) {
                         if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
                             log.info(String.format("%s is reachable", ip));
@@ -320,7 +323,32 @@ public class NodeManager {
         }
         runners.forEach(runner -> {
             runner.join(CALL_TIMEOUT);
-        });
+        });*/
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip)) {
+                this.createNodeClient(host);
+            }
+        }
+    }
+
+    private void startScan(String ip, Runner runner) {
+        // TODO: comprovar totes les ips que no estiguin dins del node HashMap
+        // TODO: Crear List<NodeClient> global per a poder iniciar i aturar els threads
+        // TODO: És neccesari emplear els Runners?
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip) && !this.nodes.containsKey(host)) {
+                this.createNodeClient(host);
+            }
+        }
+    }
+
+    private void stopScan() {
+        // TODO: aturar threads NodeClient
+        for(NodeClient client:this.clientList){
+            client.stop();
+        }
     }
 
     /**
