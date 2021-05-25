@@ -55,6 +55,7 @@ public class NodeManager {
      * @param nodeConnection NodeConnection to reset
      */
     public synchronized void setUpConnection(NodeConnection nodeConnection) {
+        //TODO Ask Serafi if this method is necessary.
         int id = nodeConnection.getNode().getId();
         String ip = this.nodes.get(id);
         this.nodeConnections.remove(nodeConnection);
