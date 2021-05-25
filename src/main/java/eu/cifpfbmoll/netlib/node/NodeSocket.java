@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,10 +15,19 @@ import java.net.Socket;
  * @see InputStream
  * @see OutputStream
  */
-public class NodeSocket {
+public class NodeSocket implements Closeable {
     private final Socket socket;
     private final InputStream inputStream;
     private final OutputStream outputStream;
+
+    /**
+     * Get Socket from NodeSocket instance.
+     *
+     * @return Socket.
+     */
+    public Socket getSocket() {
+        return socket;
+    }
 
     /**
      * Create a new NodeSocket with a host and port.
@@ -26,7 +36,7 @@ public class NodeSocket {
      * @param port port number
      * @throws IOException if the assignment of InputStream/OutputStream fails
      */
-    private NodeSocket(String host, int port) throws IOException {
+    public NodeSocket(String host, int port) throws IOException {
         this(new Socket(host, port));
     }
 
@@ -36,7 +46,7 @@ public class NodeSocket {
      * @param socket socket to create NodeSocket from
      * @throws IOException if the assignment of InputStream/OutputStream fails
      */
-    private NodeSocket(Socket socket) throws IOException {
+    public NodeSocket(Socket socket) throws IOException {
         this.socket = socket;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
@@ -51,6 +61,15 @@ public class NodeSocket {
     public void write(byte[] data) throws IOException {
         this.outputStream.write(data);
         this.outputStream.flush();
+    }
+
+    /**
+     * Provides socket ip.
+     *
+     * @return NodeSocket's socket ip.
+     */
+    public String getIp() {
+        return this.socket.getInetAddress().getHostAddress();
     }
 
     /**
@@ -80,10 +99,20 @@ public class NodeSocket {
     }
 
     /**
+     * Check if socket is closed.
+     *
+     * @return true if socket is closed, false otherwise.
+     */
+    public boolean isClosed() {
+        return this.socket.isClosed();
+    }
+
+    /**
      * Terminate connection and close socket and InputStream/OutputStream.
      *
      * @throws IOException if an IO error occurs
      */
+    @Override
     public void close() throws IOException {
         if (this.inputStream != null) this.inputStream.close();
         if (this.outputStream != null) this.outputStream.close();

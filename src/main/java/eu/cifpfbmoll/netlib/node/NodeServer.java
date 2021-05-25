@@ -4,8 +4,12 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.crypto.Data;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * The NodeServer Class listens for incoming Node connections and assigns them a new NodeConnection.
@@ -18,50 +22,55 @@ import java.net.ServerSocket;
  */
 public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
-    private static final int DEFAULT_PORT = 420;
-    private final ServerSocket socket;
+    public static final int DEFAULT_PORT = 420;
+    private ServerSocket socket;
+    private final NodeManager manager;
 
     /**
-     * Create a new NodeServer with a port to listen on.
+     * Creates a new NodeServer with an instance of NodeManager and PacketManager.
      *
-     * @throws IOException if port binding fails
+     * @param manager NodeManager instance.
      */
-    protected NodeServer() throws IOException {
-        this(new ServerSocket(DEFAULT_PORT));
-    }
-
-    /**
-     * Create a new NodeServer with a port to listen on.
-     *
-     * @param port port number to bound socket to
-     * @throws IOException if port binding fails
-     */
-    protected NodeServer(int port) throws IOException {
-        this(new ServerSocket(port));
-    }
-
-    /**
-     * Create a new NodeServer from an existing ServerSocket.
-     *
-     * @param socket ServerSocket to create NodeServer from
-     * @throws NullPointerException if socket is null
-     */
-    protected NodeServer(ServerSocket socket) throws NullPointerException {
-        if (socket == null) throw new NullPointerException("ServerSocket must not be null");
-        this.socket = socket;
+    public NodeServer(NodeManager manager) {
+        this.manager = manager;
+        try {
+            this.socket = new ServerSocket(DEFAULT_PORT);
+        } catch (IOException e) {
+            log.error("Error while creating ServerSocket", e);
+        }
+        this.start();
     }
 
     @Override
     public void run() {
-        try {
-        } catch (Exception e) {
-            log.error("ServerSocket thread crashed: ", e);
-        } finally {
+        while (this.run) {
             try {
-                this.socket.close();
+                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
+                log.info("Creating connection with: " + nodeSocket.getIp());
+                if (!this.manager.nodeInHash(nodeSocket.getIp())) {
+                    log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
+                    //new NodeIdentification(nodeSocket, this.manager);
+                    DataInputStream inputStream=new DataInputStream(nodeSocket.getSocket().getInputStream());
+                    String message=inputStream.readUTF();
+                    if(message.equals("I am Damn player")){
+                        log.info("Hello message received from: "+nodeSocket.getIp());
+                        DataOutputStream outputStream=new DataOutputStream(nodeSocket.getSocket().getOutputStream());
+                        outputStream.writeUTF("Welcome");
+                        outputStream.flush();
+                    }
+                } /*else {
+                    NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
+                    this.manager.addNewConnection(nodeConnection);
+                    log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
+                }*/
             } catch (Exception e) {
-                log.error("failed to close ServerSocket: ", e);
+                log.error("Error in NodeServer run", e);
             }
+        }
+        try {
+            this.socket.close();
+        } catch (Exception e) {
+            log.error("failed to close ServerSocket: ", e);
         }
     }
 }

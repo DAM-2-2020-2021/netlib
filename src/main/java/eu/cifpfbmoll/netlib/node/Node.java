@@ -6,14 +6,14 @@ package eu.cifpfbmoll.netlib.node;
  * <p>The Node Class holds information about a specific Node.</p>
  */
 public class Node {
-    private int id;
+    private Integer id;
     private String ip;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -31,8 +31,11 @@ public class Node {
      * @param id node ID
      * @param ip node IP
      */
-    public Node(int id, String ip) {
+    public Node(Integer id, String ip) {
         this.id = id;
         this.ip = ip;
+    }
+
+    public Node() {
     }
 }

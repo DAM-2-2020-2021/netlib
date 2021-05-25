@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  netlib:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - netlib-net
+networks:
+  netlib-net:

@@ -2,6 +2,11 @@ package eu.cifpfbmoll.netlib.util;
 
 import java.util.function.Consumer;
 
+/**
+ * Run a Consumer function inside a thread.
+ *
+ * @param <T> consumer function parameter type
+ */
 public class Runner<T> extends Threaded {
     private final T param;
     private final Consumer<T> consumer;

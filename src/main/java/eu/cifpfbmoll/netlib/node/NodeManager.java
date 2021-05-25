@@ -1,75 +1,179 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.annotation.PacketType;
-import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
+import eu.cifpfbmoll.netlib.util.Runner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Implement list of NodeConnections and helper functions (add, remove, getById...)
+
 /**
- * Discover and manage nodes in the network and register
+ * Discover, connect and manage nodes in the network.
  */
 public class NodeManager {
+    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
+    private static final int CALL_TIMEOUT = 1500;
     private final Map<Integer, String> nodes = new HashMap<>();
-    private final PacketManager manager;
+    private final List<NodeConnection> nodeConnections = new ArrayList<>();
+    private final Integer id;
+    private final NodeServer nodeServer;
+    private final PacketManager packetManager;
+    private final String ip;
+    private String subnet;
+    private NodeTesting nodeTesting;
+    private final List<NodeClient> clientList = new ArrayList<>();
+
+    //Aquest counter me serveix per fer s'id de moment, s'ha de llevar quan implementem els packets.
+    public static int counter = 1;
 
     /**
-     * Create a NodeManager with a PacketManager.
+     * Creates a NodeManager instance with the user's given ip.
      *
-     * @param manager PacketManager
+     * @param ip user's ip.
      */
-    public NodeManager(PacketManager manager) {
-        this.manager = manager;
+    public NodeManager(Integer id, String ip) {
+        this.id = id;
+        this.ip = ip;
+        this.getCurrentSubnet();
+        this.packetManager = new PacketManager();
+        this.nodeServer = new NodeServer(this);
+        //this.nodeTesting = new NodeTesting("192.168.1.102", 9999, this);
+        this.discover();
+        //this.createNodeClient("192.168.1.27");
     }
 
     /**
-     * Create a NodeManager with default values.
+     * Restarts communications between 2 players.
+     *
+     * @param nodeConnection NodeConnection to reset
      */
-    public NodeManager() {
-        this.manager = new PacketManager();
+    public synchronized void setUpConnection(NodeConnection nodeConnection) {
+        //TODO Ask Serafi if this method is necessary.
+        int id = nodeConnection.getNode().getId();
+        String ip = this.nodes.get(id);
+        this.nodeConnections.remove(nodeConnection);
+        try {
+            this.nodeConnections.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+        } catch (IOException e) {
+            log.error("Problem creating new NoseSocket", e);
+        }
+        notifyAll();
     }
 
     /**
-     * Create a new NodeServer and start listening for connections.
+     * Adds new NodeConnection to ArrayList.
      *
-     * @param port listening port
-     * @return NodeServer instance
+     * @param nodeConnection new NodeConnection.
      */
-    public static NodeServer startServer(Integer port) {
-        return null;
+    public synchronized void addNewConnection(NodeConnection nodeConnection) {
+        this.nodeConnections.add(nodeConnection);
+        notifyAll();
     }
 
     /**
-     * Connect to a node with the specified ID.
+     * Verifies if an specific node's ip is registered in Map.
      *
-     * @param id node ID
-     * @return NodeConnection if connection was successful, null otherwise.
+     * @param ip IP to check in nodes HashMap
+     * @return True if is in HashMap, False otherwise.
      */
-    public static NodeConnection connect(Integer id) {
-        return null;
+    public boolean nodeInHash(String ip) {
+        return nodes.containsValue(ip);
     }
 
     /**
-     * Connect to a node with the specified IP address and port.
+     * Creates a new NodeClient instance from a discovered ip.
      *
-     * @param ip   IP to connect to
-     * @param port port to connect to
-     * @return NodeConnection if connection was successful, null otherwise.
+     * @param ip Node destination IP
      */
-    public static NodeConnection connect(String ip, Integer port) {
-        return null;
+    private void createNodeClient(String ip) {
+        try {
+            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+        } catch (IOException e) {
+            log.error("Error creating a socket for NodeClient", e);
+        }
+    }
+
+    /**
+     * Send a Packet object to an other node with id.
+     *
+     * @param id     target node id
+     * @param packet packet object to send
+     * @return true if send was successful, false otherwise
+     */
+    public boolean send(Integer id, Object packet) {
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null) {
+            String ip = this.nodes.get(id);
+            if (ip == null) return false;
+            try {
+                NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
+                conn = new NodeConnection(new Node(id, ip), socket, this);
+            } catch (IOException e) {
+                log.error("failed to create connection with ", e);
+                return false;
+            }
+        }
+        return conn.send(packet);
+    }
+
+    /**
+     * Connect and send a Packet object to an other node with ip.
+     *
+     * <p>This method does not check if the target machine
+     * is running the same program and won't be added to the
+     * NodeConnection's list, this might cause issues.
+     * Use at your own risk.</p>
+     *
+     * @param ip     target node ip
+     * @param port   target node port
+     * @param packet packet object to send
+     * @return NodeConnection or null if the operation failed
+     */
+    public NodeConnection send(String ip, int port, Object packet) {
+        NodeConnection conn = null;
+        try {
+            NodeSocket socket = new NodeSocket(ip, port);
+            conn = new NodeConnection(new Node(-1, ip), socket, this);
+            conn.send(packet);
+        } catch (Exception e) {
+            log.error("failed to create connection with ", e);
+            return null;
+        }
+        return conn;
     }
 
     /**
      * Get PacketManager.
      *
-     * @return Current PacketManager
+     * @return current PacketManager
      */
-    public PacketManager getManager() {
-        return manager;
+    public PacketManager getPacketManager() {
+        return this.packetManager;
+    }
+
+    /**
+     * Get NodeServer.
+     *
+     * @return current NodeServer
+     */
+    public NodeServer getNodeServer() {
+        return nodeServer;
+    }
+
+    /**
+     * Get Node's id
+     *
+     * @return current node's id
+     */
+    public Integer getId() {
+        return id;
     }
 
     /**
@@ -78,7 +182,7 @@ public class NodeManager {
      * @param id node ID
      * @return node IP address or null if no entry was found for ID
      */
-    public String getIP(Integer id) {
+    public String getNodeIPById(Integer id) {
         return this.nodes.get(id);
     }
 
@@ -88,7 +192,7 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public void put(Integer id, String ip) {
+    public void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
     }
 
@@ -97,12 +201,68 @@ public class NodeManager {
      *
      * @param id node ID
      */
-    public void remove(Integer id) {
+    public void removeNodeId(Integer id) {
         this.nodes.remove(id);
     }
 
     /**
-     * Add a new Packet Handler for Packet type.
+     * Get NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to look for
+     * @return matching NodeConnection
+     */
+    public NodeConnection nodeConnectionById(Integer id) {
+        NodeConnection nodeConnection = null;
+        for (NodeConnection conn : this.nodeConnections) {
+            if (conn.getNode().getId().equals(id)) {
+                nodeConnection = conn;
+                break;
+            }
+        }
+        return nodeConnection;
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list with matching node id.
+     *
+     * @param id node id to remove
+     */
+    public synchronized void removeNodeConnectionById(Integer id) {
+        for (int i = 0; i < this.nodeConnections.size(); i++) {
+            NodeConnection conn = this.nodeConnections.get(i);
+            if (conn.getNode().getId().equals(id)) {
+                this.nodeConnections.remove(i);
+                break;
+            }
+        }
+        notifyAll();
+    }
+
+    /**
+     * Add NodeConnection to NodeConnections list if not present.
+     *
+     * @param nodeConnection NodeConnection to add
+     */
+    public synchronized void addNodeConnection(NodeConnection nodeConnection) {
+        Integer id = nodeConnection.getNode().getId();
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn == null)
+            this.nodeConnections.add(nodeConnection);
+        log.info("added node connection with id: " + id);
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeConnection from NodeConnections list.
+     *
+     * @param nodeConnection NodeConnection to remove
+     */
+    public void removeNodeConnection(NodeConnection nodeConnection) {
+        removeNodeConnectionById(nodeConnection.getNode().getId());
+    }
+
+    /**
+     * Register a Packet Handler for Packet type.
      *
      * @param clazz   object class to handle
      * @param handler packet handler to handle a Packet type
@@ -110,26 +270,26 @@ public class NodeManager {
      * @throws IllegalArgumentException if object's class does not have the PacketType annotation or packet type is already registered
      * @see PacketHandler
      */
-    public <T> void add(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
-        this.manager.add(clazz, handler);
+    public <T> void register(Class<T> clazz, PacketHandler<T> handler) throws NullPointerException, IllegalArgumentException {
+        this.packetManager.add(clazz, handler);
     }
 
     /**
-     * Removed Packet Handler for Packet type.
+     * Remove registered Packet Handler for Packet type.
      *
      * @param type packet type to remove
      */
-    public void remove(String type) {
-        this.manager.remove(type);
+    public void unregister(String type) {
+        this.packetManager.remove(type);
     }
 
     /**
-     * Removed Packet Handler for Packet type.
+     * Remove registered Packet Handler for Packet type.
      *
      * @param clazz class of the packet type to remove
      */
-    public void remove(Class<?> clazz) {
-        this.manager.remove(clazz);
+    public void unregister(Class<?> clazz) {
+        this.packetManager.remove(clazz);
     }
 
     /**
@@ -137,9 +297,65 @@ public class NodeManager {
      *
      * <p>If a device is found and responds with their ID,
      * it will be added to the nodes table with its ID.</p>
-     *
-     * @param ips IP list
      */
-    public void discover(List<String> ips) {
+    public void discover() {
+        // TODO: Find out why runners do not find reachable IP's
+        /*List<Runner<String>> runners = new ArrayList<>();
+        for (int i = 1; i < 255; i++) {
+            String host = subnet + "." + i;
+            Runner<String> runner = new Runner<>(host, ip -> {
+                try {
+                    //log.info("trying: " + ip);
+                    if (!ip.equals(this.ip)) {
+                        if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
+                            log.info(String.format("%s is reachable", ip));
+                            this.createNodeClient(ip);
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    log.error("UnknownHostException when calling a device.");
+                } catch (IOException e) {
+                    log.error("IOException when calling a device.");
+                }
+            });
+            runner.start();
+            runners.add(runner);
+        }
+        runners.forEach(runner -> {
+            runner.join(CALL_TIMEOUT);
+        });*/
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip)) {
+                this.createNodeClient(host);
+            }
+        }
+    }
+
+    private void startScan(String ip, Runner runner) {
+        // TODO: comprovar totes les ips que no estiguin dins del node HashMap
+        // TODO: Crear List<NodeClient> global per a poder iniciar i aturar els threads
+        // TODO: És neccesari emplear els Runners?
+        for (int i = 0; i < 255; i++) {
+            String host = subnet + "." + i;
+            if (!host.equals(this.ip) && !this.nodes.containsKey(host)) {
+                this.createNodeClient(host);
+            }
+        }
+    }
+
+    private void stopScan() {
+        // TODO: aturar threads NodeClient
+        for(NodeClient client:this.clientList){
+            client.stop();
+        }
+    }
+
+    /**
+     * Retrieves subnet from user's ip.
+     */
+    public void getCurrentSubnet() {
+        String[] splitIp = ip.split("\\.");
+        subnet = String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 }

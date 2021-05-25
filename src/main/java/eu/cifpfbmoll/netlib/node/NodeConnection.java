@@ -2,7 +2,6 @@ package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
-import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.packet.PacketParser;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
@@ -20,12 +19,15 @@ public class NodeConnection extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeConnection.class);
     private final Node node;
     private final NodeSocket socket;
-    private final PacketManager manager;
+    private final NodeManager manager;
+    private final NodeChannel nodeChannel = new NodeChannel(this);
 
-    protected NodeConnection(Node node, NodeSocket socket, PacketManager manager) {
+    public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
+        log.info("New NodeConnection created with " + this.node.getIp());
+        this.start();
     }
 
     /**
@@ -38,11 +40,20 @@ public class NodeConnection extends Threaded {
     }
 
     /**
-     * Get PacketManager.
+     * Get NodeSocket.
      *
-     * @return current PacketManager
+     * @return NodeConnection's NodeSocket
      */
-    public PacketManager getManager() {
+    public NodeSocket getNodeSocket() {
+        return socket;
+    }
+
+    /**
+     * Get NodeManager.
+     *
+     * @return current NodeManager
+     */
+    public NodeManager getManager() {
         return manager;
     }
 
@@ -59,10 +70,10 @@ public class NodeConnection extends Threaded {
             PacketType packetType = clazz.getAnnotation(PacketType.class);
             if (packetType == null) return false;
             String type = Packet.formatType(packetType.value());
-
-            // TODO: implement packet src and dst ids
             PacketParser parser = PacketParser.getInstance();
-            Packet packet = Packet.create(type, 0, this.node.getId(), parser.serialize(object));
+            byte[] data = parser.serialize(object);
+            if (data == null) return false;
+            Packet packet = Packet.create(type, this.manager.getId(), this.node.getId(), data);
             this.socket.write(packet.dump());
             return true;
         } catch (Exception e) {
@@ -73,5 +84,17 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
+        // TODO: thread routine (rebre packets)
+        while (this.run && !this.socket.isClosed()) {
+            try {
+                byte[] data = new byte[1024];
+                int size = this.socket.read(data);
+                Packet packet = Packet.load(data);
+                this.manager.getPacketManager().process(packet);
+            } catch (Exception e) {
+                log.error("NodeConnection channel failed: ", e);
+            }
+        }
+        this.manager.removeNodeConnection(this);
     }
 }
