@@ -86,6 +86,7 @@ public class NodeConnection extends Threaded {
         }
     }
 
+
     @Override
     public void run() {
         // TODO: thread routine (rebre packets)
@@ -98,18 +99,18 @@ public class NodeConnection extends Threaded {
             } catch (Exception e) {
                 log.error("NodeConnection channel failed: ", e);
             }*/
-        while (this.nodeChannel.isChannelOk()) {
+        while (!this.socket.isClosed()) {
             try {
                 DataInputStream inputStream = new DataInputStream(this.socket.getSocket().getInputStream());
                 String message = inputStream.readUTF();
                 if (message.equals("Can you hear me?")) {
-                    DataOutputStream outputStream=new DataOutputStream(this.socket.getSocket().getOutputStream());
+                    DataOutputStream outputStream = new DataOutputStream(this.socket.getSocket().getOutputStream());
                     outputStream.writeUTF("I can hear you");
                     outputStream.flush();
                     log.info("Answering acknowledgment from " + this.node.getIp());
                 } else if (message.equals("I can hear you")) {
                     log.info("Acknowledgment from " + this.node.getIp() + " received.");
-                    this.nodeChannel.setHealthyChannel();
+                    this.nodeChannel.setAcknowledgmentReceived();
                 }
             } catch (IOException e) {
                 log.error("Error in NodeConnection " + this.node.getIp(), e);

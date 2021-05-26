@@ -16,6 +16,7 @@ public class NodeChannel extends Threaded {
     private final NodeConnection nodeConnection;
     //private final NodeHealthConnection nodeHealthConnection;
     private boolean healthyChannel;
+    private boolean acknowledgmentReceived;
     private final int COMMUNICATION_ATTEMPTS = 5;
 
     public NodeChannel(NodeConnection nodeConnection) {
@@ -77,18 +78,31 @@ public class NodeChannel extends Threaded {
         }
     }
 
-    public void setHealthyChannel(){
-        this.healthyChannel=true;
+    public void setAcknowledgmentReceived() {
+        this.acknowledgmentReceived = true;
+    }
+
+    private void sendAcknowledgment() {
+        try {
+            DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
+            outputStream.writeUTF("Can you hear me?");
+            outputStream.flush();
+        } catch (IOException e) {
+            log.error("Error sending Acknowledgment", e);
+        }
+
     }
 
     @Override
     public void run() {
-        while (this.healthyChannel) {
-            for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.healthyChannel; i++) {
+        while (!this.nodeConnection.getNodeSocket().isClosed()) {
+            this.acknowledgmentReceived = false;
+            this.sendAcknowledgment();
+            for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.acknowledgmentReceived; i++) {
                 this.sleep(500);
                 log.info("Trying feedback attemp: " + i);
             }
-            if (!this.healthyChannel) {
+            if (!this.acknowledgmentReceived) {
                 log.info("Missing acknowledgement. Removing socket.");
                 this.quitSocket();
             }

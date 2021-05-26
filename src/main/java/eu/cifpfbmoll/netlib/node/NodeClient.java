@@ -44,7 +44,7 @@ public class NodeClient extends Threaded {
             outputStream.writeUTF("I am Damn player");
             outputStream.flush();
         } catch (IOException e) {
-            log.error("Error in NodeClient",e.getMessage());
+            log.error("Error in NodeClient",e);
         }
     }
 
