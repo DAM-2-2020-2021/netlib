@@ -47,7 +47,6 @@ public class NodeServer extends Threaded {
                 log.info("Creating connection with: " + nodeSocket.getIp());
                 if (!this.manager.nodeInHash(nodeSocket.getIp())) {
                     log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
-                    //new NodeIdentification(nodeSocket, this.manager);
                     DataInputStream inputStream = new DataInputStream(nodeSocket.getSocket().getInputStream());
                     String message = inputStream.readUTF();
                     if (message.equals("I am Damn player")) {
