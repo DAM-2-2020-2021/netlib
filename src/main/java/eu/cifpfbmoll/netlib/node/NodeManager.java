@@ -22,12 +22,13 @@ public class NodeManager {
     private static final int CALL_TIMEOUT = 1500;
     private final Map<Integer, String> nodes = new HashMap<>();
     private final List<NodeConnection> nodeConnections = new ArrayList<>();
+    private final List<NodeClient> clientList = new ArrayList<>();
     private final Integer id;
     private final NodeServer nodeServer;
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
-    private final List<NodeClient> clientList = new ArrayList<>();
+
 
     /**
      * Creates a NodeManager instance with the user's given ip.
@@ -35,16 +36,22 @@ public class NodeManager {
      * @param ip user's ip.
      */
     public NodeManager(String ip) {
-        this.id = getMyId(ip);
+        this.id = getIdFromIp(ip);
         this.ip = ip;
-        this.getCurrentSubnet();
+        this.subnet = this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this);
         //this.discover();
         this.createNodeClient("192.168.1.27");
     }
 
-    public static int getMyId(String ip) {
+    /**
+     * Get unique id from ip given.
+     *
+     * @param ip given to split and get id.
+     * @return id unique number.
+     */
+    public static int getIdFromIp(String ip) {
         String[] splitIp = ip.split("\\.");
         return Integer.parseInt(splitIp[3]);
     }
@@ -88,9 +95,9 @@ public class NodeManager {
     }
 
     /**
-     * Creates a new NodeClient instance from a discovered ip.
+     * Creates a new NodeClient instance and adds it to clientList.
      *
-     * @param ip Node destination IP
+     * @param ip Node destination ip
      */
     private void createNodeClient(String ip) {
         try {
@@ -98,6 +105,27 @@ public class NodeManager {
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
         }
+    }
+
+    /**
+     * Removes NodeClient from clientList.
+     *
+     * @param nodeClient
+     */
+    public synchronized void removeNodeClient(NodeClient nodeClient) {
+        if (this.clientList.remove(nodeClient)) {
+            log.info("Removing NodeClient " + nodeClient.getIp() + " from clientList");
+        } else {
+            for (int i = 0; i < this.clientList.size(); i++) {
+                NodeClient client = this.clientList.get(i);
+                if (client.getIp().equals(nodeClient.getIp())) {
+                    this.clientList.remove(i);
+                    i = this.clientList.size();
+                    log.info("Removing NodeClient " + nodeClient.getIp() + " from clientList");
+                }
+            }
+        }
+        notifyAll();
     }
 
     /**
@@ -257,8 +285,9 @@ public class NodeManager {
      *
      * @param nodeConnection NodeConnection to remove
      */
-    public void removeNodeConnection(NodeConnection nodeConnection) {
+    public synchronized void removeNodeConnection(NodeConnection nodeConnection) {
         removeNodeConnectionById(nodeConnection.getNode().getId());
+        notifyAll();
     }
 
     /**
@@ -354,8 +383,8 @@ public class NodeManager {
     /**
      * Retrieves subnet from user's ip.
      */
-    public void getCurrentSubnet() {
+    private String getCurrentSubnet() {
         String[] splitIp = ip.split("\\.");
-        subnet = String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
+        return String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 }

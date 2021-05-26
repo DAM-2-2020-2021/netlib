@@ -4,21 +4,18 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Sends messages until connects with another pc.
+ * Sends messages until ip is registered inside nodes HashMap.
  */
 public class NodeClient extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
-    private static final int ATTEMPTS = 10;
     private static final int DELAY = 300;
-    private final String ip;
+    private String ip;
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
-    private boolean identifiedPlayer = false;
 
     /**
      * Creates NodeClient instance with given parameters.
@@ -34,34 +31,29 @@ public class NodeClient extends Threaded {
         this.start();
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     /**
      * Sends a "hello" message in order to be identified as a Damn player.
      */
-    private void tryFeedback() {
+    private void sendHello() {
         try {
             DataOutputStream outputStream = new DataOutputStream(this.nodeSocket.getSocket().getOutputStream());
             outputStream.writeUTF("I am Damn player");
             outputStream.flush();
-            DataInputStream inputStream = new DataInputStream(this.nodeSocket.getSocket().getInputStream());
-            String message = inputStream.readUTF();
-            if (message.equals("Welcome")) {
-                log.info("NodeSocket " + this.nodeSocket.getIp() + " has been identified successfully!");
-                int id = NodeManager.getMyId(this.nodeSocket.getIp());
-                this.nodeManager.putNodeId(id, this.nodeSocket.getIp());
-                NodeConnection nodeConnection = new NodeConnection(new Node(id, this.nodeSocket.getIp()), this.nodeSocket, this.nodeManager);
-                this.nodeManager.addNewConnection(nodeConnection);
-                this.identifiedPlayer = true;
-            }
         } catch (IOException e) {
-            log.error("Problem sending hello message", e);
+            log.error("Error in NodeClient",e.getMessage());
         }
     }
 
     @Override
     public void run() {
-        while (!this.identifiedPlayer) {
-            this.tryFeedback();
+        while (!this.nodeManager.nodeInHash(ip)) {
+            this.sendHello();
             this.sleep(DELAY);
         }
+        this.nodeManager.removeNodeClient(this);
     }
 }

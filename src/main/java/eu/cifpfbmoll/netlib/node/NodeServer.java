@@ -4,8 +4,6 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -22,7 +20,7 @@ public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
-    private final NodeManager manager;
+    private final NodeManager nodeManager;
 
     /**
      * Creates a new NodeServer with an instance of NodeManager and PacketManager.
@@ -30,7 +28,7 @@ public class NodeServer extends Threaded {
      * @param manager NodeManager instance.
      */
     public NodeServer(NodeManager manager) {
-        this.manager = manager;
+        this.nodeManager = manager;
         try {
             this.socket = new ServerSocket(DEFAULT_PORT);
         } catch (IOException e) {
@@ -44,22 +42,12 @@ public class NodeServer extends Threaded {
         while (this.run) {
             try {
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                log.info("Creating connection with: " + nodeSocket.getIp());
-                if (!this.manager.nodeInHash(nodeSocket.getIp())) {
-                    log.info(String.format("Identifying connection with ip: %s", nodeSocket.getIp()));
-                    DataInputStream inputStream = new DataInputStream(nodeSocket.getSocket().getInputStream());
-                    String message = inputStream.readUTF();
-                    if (message.equals("I am Damn player")) {
-                        log.info("Hello message received from: " + nodeSocket.getIp());
-                        DataOutputStream outputStream = new DataOutputStream(nodeSocket.getSocket().getOutputStream());
-                        outputStream.writeUTF("Welcome");
-                        outputStream.flush();
-                    }
-                } /*else {
-                    NodeConnection nodeConnection = new NodeConnection(new Node(NodeManager.counter++, nodeSocket.getIp()), nodeSocket, this.manager);
-                    this.manager.addNewConnection(nodeConnection);
-                    log.info(String.format("New NodeConnection added! %s"), nodeSocket.getIp());
-                }*/
+                if (!this.nodeManager.nodeInHash(nodeSocket.getIp())) {
+                    log.info("Creating new connection with: " + nodeSocket.getIp());
+                    new NodeIdentification(this.nodeManager,nodeSocket);
+                }else{
+                    //TODO: send Nodesocket to NodeConnection in order to manage packets. If NodeConnection is dead, we have to create another one.
+                }
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);
             }
