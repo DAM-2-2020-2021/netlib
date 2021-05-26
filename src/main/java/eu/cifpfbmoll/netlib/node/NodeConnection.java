@@ -7,6 +7,10 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * The NodeConnection Class manages a single connection with another node on the network.
  *
@@ -85,7 +89,7 @@ public class NodeConnection extends Threaded {
     @Override
     public void run() {
         // TODO: thread routine (rebre packets)
-        while (this.run && !this.socket.isClosed()) {
+        /*while (this.run && !this.socket.isClosed()) {
             try {
                 byte[] data = new byte[1024];
                 int size = this.socket.read(data);
@@ -93,6 +97,22 @@ public class NodeConnection extends Threaded {
                 this.manager.getPacketManager().process(packet);
             } catch (Exception e) {
                 log.error("NodeConnection channel failed: ", e);
+            }*/
+        while (this.nodeChannel.isChannelOk()) {
+            try {
+                DataInputStream inputStream = new DataInputStream(this.socket.getSocket().getInputStream());
+                String message = inputStream.readUTF();
+                if (message.equals("Can you hear me?")) {
+                    DataOutputStream outputStream=new DataOutputStream(this.socket.getSocket().getOutputStream());
+                    outputStream.writeUTF("I can hear you");
+                    outputStream.flush();
+                    log.info("Answering acknowledgment from " + this.node.getIp());
+                } else if (message.equals("I can hear you")) {
+                    log.info("Acknowledgment from " + this.node.getIp() + " received.");
+                    this.nodeChannel.setHealthyChannel();
+                }
+            } catch (IOException e) {
+                log.error("Error in NodeConnection " + this.node.getIp(), e);
             }
         }
         this.manager.removeNodeConnection(this);

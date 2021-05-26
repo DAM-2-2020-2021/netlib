@@ -287,6 +287,7 @@ public class NodeManager {
      */
     public synchronized void removeNodeConnection(NodeConnection nodeConnection) {
         removeNodeConnectionById(nodeConnection.getNode().getId());
+        log.info("NodeConnection " + nodeConnection.getNode().getIp() + " removed.");
         notifyAll();
     }
 

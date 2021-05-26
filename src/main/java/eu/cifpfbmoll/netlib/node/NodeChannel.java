@@ -14,13 +14,14 @@ import java.io.IOException;
 public class NodeChannel extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeChannel.class);
     private final NodeConnection nodeConnection;
-    private final NodeHealthConnection nodeHealthConnection;
+    //private final NodeHealthConnection nodeHealthConnection;
     private boolean healthyChannel;
+    private final int COMMUNICATION_ATTEMPTS = 5;
 
     public NodeChannel(NodeConnection nodeConnection) {
         this.nodeConnection = nodeConnection;
         this.healthyChannel = true;
-        this.nodeHealthConnection = new NodeHealthConnection(this, this.nodeConnection);
+        //this.nodeHealthConnection = new NodeHealthConnection(this, this.nodeConnection);
         log.info("NodeChannel created!");
         this.start();
     }
@@ -62,7 +63,7 @@ public class NodeChannel extends Threaded {
                 outputStream.flush();
                 log.info("Answering Acknowledgement");
             } else if ("Yes I do".equals(message)) {
-                this.nodeHealthConnection.setAcknowledgmentReceived();
+                //this.nodeHealthConnection.setAcknowledgmentReceived();
                 log.info("Acknowledgement received!");
             } else if (message == null) {
                 log.info("Message content null, establishing new connexion");
@@ -76,11 +77,21 @@ public class NodeChannel extends Threaded {
         }
     }
 
+    public void setHealthyChannel(){
+        this.healthyChannel=true;
+    }
+
     @Override
     public void run() {
-        this.sleep(1000);
         while (this.healthyChannel) {
-            this.managingAcknowledgment();
+            for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.healthyChannel; i++) {
+                this.sleep(500);
+                log.info("Trying feedback attemp: " + i);
+            }
+            if (!this.healthyChannel) {
+                log.info("Missing acknowledgement. Removing socket.");
+                this.quitSocket();
+            }
         }
     }
 }
