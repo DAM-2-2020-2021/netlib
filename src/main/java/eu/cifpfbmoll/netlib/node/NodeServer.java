@@ -21,13 +21,15 @@ public class NodeServer extends Threaded {
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
     private final NodeManager nodeManager;
+    private String ip;
 
     /**
      * Creates a new NodeServer with an instance of NodeManager and PacketManager.
      *
      * @param manager NodeManager instance.
      */
-    public NodeServer(NodeManager manager) {
+    public NodeServer(NodeManager manager, String ip) {
+        this.ip=ip;
         this.nodeManager = manager;
         try {
             this.socket = new ServerSocket(DEFAULT_PORT);
@@ -42,7 +44,7 @@ public class NodeServer extends Threaded {
         while (this.run) {
             try {
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                if (!this.nodeManager.nodeInHash(nodeSocket.getIp())) {
+                if (!this.nodeManager.nodeInHash(nodeSocket.getIp()) && !this.ip.equals(nodeSocket.getIp())) {
                     log.info("Creating new connection with: " + nodeSocket.getIp());
                     new NodeIdentification(this.nodeManager,nodeSocket);
                 }else{
