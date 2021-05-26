@@ -14,6 +14,7 @@ import java.util.Map;
  * Parse {@link eu.cifpfbmoll.netlib.annotation.PacketType} classes and serialize/deserialize their PacketAttributes.
  */
 public class PacketParser {
+    private static final int MAX_PACKET_SIZE = 1024;
     private static final int SIZE = 1;
     private static final int BYTE_SIZE = 1;
     private static final int SHORT_SIZE = 2;
@@ -404,8 +405,9 @@ public class PacketParser {
      * @param object object to serialize
      * @return serialized byte array
      * @throws IllegalAccessException if setting a field fails
+     * @throws IllegalArgumentException if the object to be serialized is invalid
      */
-    public byte[] serialize(Object object) throws IllegalAccessException {
+    public byte[] serialize(Object object) throws IllegalAccessException, IllegalArgumentException {
         if (object == null) return null;
         int size = 0;
         Class<?> clazz = object.getClass();
@@ -418,6 +420,8 @@ public class PacketParser {
                 fields.add(field);
             }
         }
+        if (size > MAX_PACKET_SIZE)
+            throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), size, MAX_PACKET_SIZE));
         ByteBuffer bb = ByteBuffer.allocate(size);
         for (Field field : fields)
             getTypeInfo(field.getType()).serializer.handle(object, field, bb);

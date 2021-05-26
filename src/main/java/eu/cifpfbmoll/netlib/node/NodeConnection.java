@@ -20,7 +20,7 @@ public class NodeConnection extends Threaded {
     private final Node node;
     private final NodeSocket socket;
     private final NodeManager manager;
-    private final NodeChannel nodeChannel = new NodeChannel(this);
+    //private final NodeChannel nodeChannel = new NodeChannel(this);
 
     public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
@@ -83,7 +83,6 @@ public class NodeConnection extends Threaded {
 
     @Override
     public void run() {
-        // TODO: thread routine (rebre packets)
         while (this.run && !this.socket.isClosed()) {
             try {
                 byte[] data = new byte[1024];
@@ -92,7 +91,7 @@ public class NodeConnection extends Threaded {
                 Packet packet = Packet.load(data);
                 this.manager.getPacketManager().process(packet);
             } catch (Exception e) {
-                log.error("NodeConnection channel failed: ", e);
+                log.error("NodeConnection thread failed: ", e);
             }
         }
         this.manager.removeNodeConnection(this);

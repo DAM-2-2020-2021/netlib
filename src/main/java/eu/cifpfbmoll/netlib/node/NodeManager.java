@@ -46,7 +46,7 @@ public class NodeManager {
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = server ? new NodeServer(this) : null;
-        this.discover();
+        //this.discover();
     }
 
     /**
