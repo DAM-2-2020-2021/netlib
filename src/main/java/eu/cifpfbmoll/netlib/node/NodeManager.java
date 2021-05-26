@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Runner;
@@ -14,8 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-// TODO: Implement list of NodeConnections and helper functions (add, remove, getById...)
 
 /**
  * Discover, connect and manage nodes in the network.
@@ -32,21 +31,42 @@ public class NodeManager {
     private String subnet;
 
     /**
+     * Get ID for an IP.
+     *
+     * @param ip IP to get ID from
+     * @return IP's ID or 0 if the operation fails
+     */
+    public static Integer getIdForIp(String ip) {
+        try {
+            String[] splitIp = ip.split("\\.");
+            return Integer.valueOf(splitIp[splitIp.length - 1]);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
      * Creates a NodeManager instance with the user's given ip.
      *
      * @param ip user's ip.
      */
-    public NodeManager(Integer id, String ip) {
-        this(id, ip, true);
+    public NodeManager(String ip) {
+        this(ip, true);
     }
 
-    public NodeManager(Integer id, String ip, boolean server) {
-        this.id = id;
+    /**
+     * Create a NodeManager instance with an IP and specify if
+     * NodeServer should be creted.
+     *
+     * @param ip     user's IP
+     * @param server boolean value if server should be created
+     */
+    public NodeManager(String ip, boolean server) {
+        this.id = getIdForIp(ip);
         this.ip = ip;
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = server ? new NodeServer(this) : null;
-        //this.discover();
     }
 
     /**
@@ -100,6 +120,26 @@ public class NodeManager {
     }
 
     /**
+     * Connect to a Node by ID.
+     *
+     * @param id Node ID to connect to
+     * @return new NodeConnection with Node or null if connection failed
+     */
+    public NodeConnection connect(Integer id) {
+        NodeConnection conn = nodeConnectionById(id);
+        if (conn != null) return conn;
+        String ip = this.nodes.get(id);
+        if (ip == null) return null;
+        try {
+            NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
+            conn = new NodeConnection(new Node(id, ip), socket, this);
+        } catch (IOException e) {
+            log.error("failed to create connection with ", e);
+        }
+        return conn;
+    }
+
+    /**
      * Send a Packet object to an other node with id.
      *
      * @param id     target node id
@@ -107,18 +147,21 @@ public class NodeManager {
      * @return true if send was successful, false otherwise
      */
     public boolean send(Integer id, Object packet) {
-        NodeConnection conn = nodeConnectionById(id);
-        if (conn == null) {
-            String ip = this.nodes.get(id);
-            if (ip == null) return false;
-            try {
-                NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
-                conn = new NodeConnection(new Node(id, ip), socket, this);
-            } catch (IOException e) {
-                log.error("failed to create connection with ", e);
-                return false;
-            }
-        }
+        NodeConnection conn = connect(id);
+        if (conn == null) return false;
+        return conn.send(packet);
+    }
+
+    /**
+     * Send a Packet to an other node with id.
+     *
+     * @param id     target node id
+     * @param packet packet object to send
+     * @return true if send was successful, false otherwise
+     */
+    public boolean send(Integer id, Packet packet) {
+        NodeConnection conn = connect(id);
+        if (conn == null) return false;
         return conn.send(packet);
     }
 
