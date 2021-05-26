@@ -9,12 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Discover, connect and manage nodes in the network.
@@ -43,6 +42,55 @@ public class NodeManager {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    /**
+     * Get all network interfaces.
+     *
+     * @return List with all network interfaces
+     */
+    public static List<NetworkInterface> getNetworkInterfaces() {
+        try {
+            return Collections.list(NetworkInterface.getNetworkInterfaces());
+        } catch (Exception ignored) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Get network interface by name.
+     *
+     * @param name name of the interface
+     * @return NetworkInterface with matching name or
+     * null if no NetworkInterface was found
+     */
+    public static NetworkInterface getInterfaceByName(String name) {
+        try {
+            List<NetworkInterface> interfaces = getNetworkInterfaces();
+            for (NetworkInterface netint : interfaces) {
+                if (StringUtils.equals(netint.getName(), name))
+                    return netint;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * Get IP for a network interface.
+     *
+     * @param networkInterface network interface to get network from
+     * @return IP of network interface
+     */
+    public static String getIPForInterface(NetworkInterface networkInterface) {
+        try {
+            for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+                if (address instanceof Inet4Address)
+                    return address.getHostAddress();
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     /**
