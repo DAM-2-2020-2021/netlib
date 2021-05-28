@@ -5,12 +5,16 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Parse {@link eu.cifpfbmoll.netlib.annotation.PacketType} classes and serialize/deserialize their PacketAttributes.
  */
 public class PacketParser {
+    private static final int MAX_PACKET_SIZE = 1024;
     private static final int SIZE = 1;
     private static final int BYTE_SIZE = 1;
     private static final int SHORT_SIZE = 2;
@@ -58,7 +62,7 @@ public class PacketParser {
          * Get an Object's field size.
          *
          * @param object object to get size from
-         * @param field object's field to calculate size
+         * @param field  object's field to calculate size
          * @return field's size
          */
         public int size(Object object, Field field) throws IllegalAccessException {
@@ -69,8 +73,8 @@ public class PacketParser {
          * Serialize an Object's field with its serializer function.
          *
          * @param object object to serialize
-         * @param field field to serialize
-         * @param bb ByteBuffer used to store serialized data
+         * @param field  field to serialize
+         * @param bb     ByteBuffer used to store serialized data
          */
         public void serialize(Object object, Field field, ByteBuffer bb) throws IllegalAccessException {
             if (this.serializer != null)
@@ -81,8 +85,8 @@ public class PacketParser {
          * Deserialize an Object's field with its deserializer function.
          *
          * @param object object to deserialize
-         * @param field field to deserialize
-         * @param bb ByteBuffer used where the serialized data is stored
+         * @param field  field to deserialize
+         * @param bb     ByteBuffer used where the serialized data is stored
          */
         public void deserialize(Object object, Field field, ByteBuffer bb) throws IllegalAccessException {
             if (this.deserializer != null)
@@ -124,6 +128,26 @@ public class PacketParser {
                 (object, field, bb) -> {
                     int size = bb.get() & 0xff;
                     byte[] arr = new byte[size];
+                    for (int i = 0; i < size; i++)
+                        arr[i] = bb.get();
+                    field.set(object, arr);
+                }));
+        this.types.put(Byte[].class, new TypeInfo(
+                (object, field) -> {
+                    Byte[] arr = (Byte[]) field.get(object);
+                    return arr.length * BYTE_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    Byte[] arr = (Byte[]) field.get(object);
+                    bb.put((byte) arr.length);
+                    for (Byte b : arr) {
+                        if (b == null) b = 0;
+                        bb.put(b);
+                    }
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    Byte[] arr = new Byte[size];
                     for (int i = 0; i < size; i++)
                         arr[i] = bb.get();
                     field.set(object, arr);
@@ -304,6 +328,26 @@ public class PacketParser {
                         bytes[i] = bb.get();
                     field.set(object, new String(bytes, Packet.CHARSET_ENCODING));
                 }));
+
+        this.types.put(List.class, new TypeInfo(
+                (object, field) -> {
+                    List<?> list = (List<?>) field.get(object);
+                    return list.size() * STRING_SIZE + SIZE;
+                },
+                (object, field, bb) -> {
+                    String str = (String) field.get(object);
+                    byte[] bytes = str.getBytes(Packet.CHARSET_ENCODING);
+                    bb.put((byte) bytes.length);
+                    for (byte b : bytes)
+                        bb.put(b);
+                },
+                (object, field, bb) -> {
+                    int size = bb.get() & 0xff;
+                    byte[] bytes = new byte[size];
+                    for (int i = 0; i < size; i++)
+                        bytes[i] = bb.get();
+                    field.set(object, new String(bytes, Packet.CHARSET_ENCODING));
+                }));
     }
 
     /**
@@ -360,9 +404,10 @@ public class PacketParser {
      *
      * @param object object to serialize
      * @return serialized byte array
-     * @throws IllegalAccessException if setting a field fails
+     * @throws IllegalAccessException   if setting a field fails
+     * @throws IllegalArgumentException if the object to be serialized is invalid
      */
-    public byte[] serialize(Object object) throws IllegalAccessException {
+    public byte[] serialize(Object object) throws IllegalAccessException, IllegalArgumentException {
         if (object == null) return null;
         int size = 0;
         Class<?> clazz = object.getClass();
