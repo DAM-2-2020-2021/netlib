@@ -39,8 +39,8 @@ public class PacketManager {
             try {
                 T object = clazz.getConstructor().newInstance();
                 PacketParser parser = PacketParser.getInstance();
-                parser.deserialize(object, packet.data);
-                handler.handle(packet.src, object);
+                parser.deserialize(object, packet.getData());
+                handler.handle(packet.getSourceId(), object);
             } catch (Exception e) {
                 log.error("failed to process packet: ", e);
             }
@@ -101,9 +101,9 @@ public class PacketManager {
      */
     public void process(Packet packet) {
         if (packet == null) return;
-        PacketInfo<?> packetInfo = this.packetInfo.get(packet.type);
+        PacketInfo<?> packetInfo = this.packetInfo.get(packet.getType());
         if (packetInfo == null) {
-            log.warn("No registered packet handler found for packet type: " + packet.type);
+            log.warn("No registered packet handler found for packet type: " + packet.getType());
         } else {
             packetInfo.process(packet);
         }

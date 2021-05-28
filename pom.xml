@@ -6,7 +6,7 @@
 
     <groupId>eu.cifpfbmoll</groupId>
     <artifactId>netlib</artifactId>
-    <version>0.4</version>
+    <version>0.6</version>
 
     <distributionManagement>
         <repository>

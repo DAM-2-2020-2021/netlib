@@ -49,12 +49,12 @@ public class NodeClient extends Threaded {
                 int id = NodeManager.counter;
                 this.nodeManager.putNodeId(id, this.nodeSocket.getIp());
                 NodeConnection nodeConnection = new NodeConnection(new Node(id, this.nodeSocket.getIp()), this.nodeSocket, this.nodeManager);
-                this.nodeManager.addNewConnection(nodeConnection);
+                this.nodeManager.addNodeConnection(nodeConnection);
                 NodeManager.counter++;
                 this.identifiedPlayer = true;
             }
         } catch (IOException e) {
-            log.error("Problem sending hello message", e);
+            log.error("Problem sending hello message to " + this.nodeSocket.getIp());
         }
     }
 
