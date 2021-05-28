@@ -135,16 +135,6 @@ public class NodeManager {
     }
 
     /**
-     * Adds new NodeConnection to ArrayList.
-     *
-     * @param nodeConnection new NodeConnection.
-     */
-    public synchronized void addNewConnection(NodeConnection nodeConnection) {
-        this.nodeConnections.add(nodeConnection);
-        notifyAll();
-    }
-
-    /**
      * Verifies if an specific node's ip is registered in Map.
      *
      * @param ip IP to check in nodes HashMap
@@ -181,6 +171,8 @@ public class NodeManager {
         try {
             NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
             conn = new NodeConnection(new Node(id, ip), socket, this);
+            addNodeConnection(conn);
+            log.info("created new NodeConnection with ip: " + ip);
         } catch (IOException e) {
             log.error("failed to create connection with ", e);
         }
@@ -301,6 +293,15 @@ public class NodeManager {
     }
 
     /**
+     * Get nodes HashMap.
+     *
+     * @return nodes hashmap
+     */
+    public Map<Integer, String> getNodes() {
+        return this.nodes;
+    }
+
+    /**
      * Remove Node from the table.
      *
      * @param id node ID
@@ -350,8 +351,11 @@ public class NodeManager {
     public synchronized void addNodeConnection(NodeConnection nodeConnection) {
         Integer id = nodeConnection.getNode().getId();
         NodeConnection conn = nodeConnectionById(id);
-        if (conn == null)
-            this.nodeConnections.add(nodeConnection);
+        if (conn != null) {
+            conn.close();
+            this.removeNodeConnectionById(conn.getNode().getId());
+        }
+        this.nodeConnections.add(nodeConnection);
         log.info("added node connection with id: " + id);
         notifyAll();
     }

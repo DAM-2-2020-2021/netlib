@@ -13,6 +13,7 @@ import java.util.Arrays;
  * <p>Instances of this Class must be created using the Constructor Factory Method</p>
  */
 public class Packet {
+    public static final int MAX_PACKET_SIZE = 1024;
     public static final Charset CHARSET_ENCODING = StandardCharsets.UTF_8;
     public static final byte DEFAULT_TYPE_VALUE = 0;
     public static final int DEFAULT_TTL_VALUE = 16;
@@ -292,12 +293,39 @@ public class Packet {
     }
 
     /**
+     * Get packet's maximum header size.
+     *
+     * @return packet maximum header size
+     */
+    public int maxHeaderSize() {
+        return PACKET_TYPE_SIZE + PACKET_TTL_SIZE + PACKET_ID_SIZE * 2 + PACKET_ID_SIZE * this.ttl;
+    }
+
+    /**
+     * Get packet's data size.
+     *
+     * @return packet data size
+     */
+    public int dataSize() {
+        return this.data.length + 2;
+    }
+
+    /**
      * Get packet size.
      *
      * @return packet size
      */
     public int size() {
-        return headerSize() + 2 + this.data.length;
+        return headerSize() + dataSize();
+    }
+
+    /**
+     * Get packet size.
+     *
+     * @return packet size
+     */
+    public int maxSize() {
+        return maxHeaderSize() + dataSize();
     }
 
     /**

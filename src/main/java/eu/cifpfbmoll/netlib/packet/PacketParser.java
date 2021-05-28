@@ -420,8 +420,6 @@ public class PacketParser {
                 fields.add(field);
             }
         }
-        if (size > MAX_PACKET_SIZE)
-            throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), size, MAX_PACKET_SIZE));
         ByteBuffer bb = ByteBuffer.allocate(size);
         for (Field field : fields)
             getTypeInfo(field.getType()).serializer.handle(object, field, bb);

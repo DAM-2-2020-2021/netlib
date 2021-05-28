@@ -75,6 +75,9 @@ public class NodeConnection extends Threaded {
             byte[] data = parser.serialize(object);
             if (data == null) return false;
             Packet packet = Packet.create(type, this.manager.getId(), this.node.getId(), data);
+            int size = packet.size();
+            if (size > Packet.MAX_PACKET_SIZE)
+                throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
             this.socket.write(packet.dump());
             return true;
         } catch (Exception e) {
@@ -98,6 +101,17 @@ public class NodeConnection extends Threaded {
             log.error("failed to send packet", e);
             return false;
         }
+    }
+
+    /**
+     * Close NodeSocket and finish thread.
+     */
+    public void close() {
+        try {
+            this.getNodeSocket().close();
+        } catch (Exception ignored) {
+        }
+        this.run = false;
     }
 
     @Override
