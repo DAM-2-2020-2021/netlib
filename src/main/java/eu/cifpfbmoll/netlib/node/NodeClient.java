@@ -1,5 +1,6 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
 import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
@@ -17,6 +18,7 @@ public class NodeClient extends Threaded {
     private final NodeManager manager;
     private final String ip;
     private final PacketManager packetManager = new PacketManager();
+    private NodeSocket socket = null;
 
     /**
      * Creates NodeClient instance with given parameters.
@@ -27,12 +29,6 @@ public class NodeClient extends Threaded {
         this.manager = manager;
         this.ip = ip;
         this.start();
-
-        /*this.packetManager.add(ACKPacket.class, (id, ack) -> {
-            System.out.println("received ACK packet from " + id);
-            this.manager.putNodeId(id, this.socket.getIp());
-            this.socket.safeClose();
-        });*/
     }
 
     /**
@@ -47,18 +43,22 @@ public class NodeClient extends Threaded {
     @Override
     public void run() {
         HelloPacket hello = new HelloPacket();
-        NodeSocket socket = null;
         try {
-            while (this.run && socket == null) {
-                socket = NodeSocket.connect(this.ip, NodeServer.DEFAULT_PORT);
+            while (this.run && this.socket == null) {
+                this.socket = NodeSocket.connect(this.ip, NodeServer.DEFAULT_PORT);
                 Thread.sleep(CONNECTION_DELAY);
             }
-            if (socket != null) {
-                while (this.run && !socket.isClosed()) {
-                    socket.send(hello, this.manager.getId(), 0);
+            if (this.socket != null) {
+                this.packetManager.add(ACKPacket.class, (id, ack) -> {
+                    System.out.println("received ACK packet from " + id);
+                    this.manager.putNodeId(id, this.socket.getIp());
+                    this.socket.safeClose();
+                });
+                while (this.run && !this.socket.isClosed()) {
+                    this.socket.send(hello, this.manager.getId(), 0);
                     Thread.sleep(ACK_DELAY);
                     byte[] data = new byte[1024];
-                    int size = socket.read(data);
+                    int size = this.socket.read(data);
                     if (size > 0) {
                         Packet packet = Packet.load(data);
                         this.packetManager.process(packet);
@@ -68,7 +68,7 @@ public class NodeClient extends Threaded {
         } catch (Exception e) {
             log.error("NodeClient's thread failed: ", e);
         } finally {
-            if (socket != null) socket.safeClose();
+            if (this.socket != null) this.socket.safeClose();
             this.manager.removeNodeClient(this);
             log.info("NodeClient finished: " + this.ip);
         }
