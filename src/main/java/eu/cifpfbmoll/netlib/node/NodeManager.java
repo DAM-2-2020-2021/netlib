@@ -153,11 +153,11 @@ public class NodeManager {
      * @param ip Node destination IP
      */
     private void createNodeClient(String ip) {
-        try {
+        /*try {
             this.clientList.add(new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient");
-        }
+        }*/
     }
 
     /**
@@ -292,6 +292,7 @@ public class NodeManager {
      */
     public void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
+        this.removeNodeClientByIp(ip);
         log.info(String.format("added node: %d - %s", id, ip));
     }
 
@@ -355,7 +356,7 @@ public class NodeManager {
         Integer id = nodeConnection.getNode().getId();
         NodeConnection conn = nodeConnectionById(id);
         if (conn != null) {
-            conn.close();
+            conn.getNodeSocket().safeClose();
             this.removeNodeConnectionById(conn.getNode().getId());
         }
         this.nodeConnections.add(nodeConnection);
@@ -385,9 +386,22 @@ public class NodeManager {
     /**
      * Remove NodeClient from NodeClients list.
      *
+     * @param ip NodeClient's IP to remove
+     */
+    public synchronized void removeNodeClientByIp(String ip) {
+        for (NodeClient nc : this.clientList)
+            if (StringUtils.equals(nc.getIp(), ip))
+                removeNodeClient(nc);
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeClient from NodeClients list.
+     *
      * @param nodeClient NodeClient to remove
      */
     public synchronized void removeNodeClient(NodeClient nodeClient) {
+        nodeClient.stop();
         this.clientList.remove(nodeClient);
         notifyAll();
     }
@@ -466,7 +480,7 @@ public class NodeManager {
         log.info("discovering " + ip);
         try {
             if (nodeInHash(ip)) return;
-            NodeClient nodeClient = new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
+            NodeClient nodeClient = new NodeClient(ip, this);
             this.clientList.add(nodeClient);
         } catch (Exception e) {
             log.error("failed to create NodeClient: ", e);

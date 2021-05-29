@@ -1,6 +1,5 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.internal.ACKPacket;
 import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
@@ -13,32 +12,67 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeClient extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
-    private static final int DELAY = 300;
-    private final NodeSocket socket;
+    private static final int CONNECTION_DELAY = 1000;
+    private static final int ACK_DELAY = 300;
     private final NodeManager manager;
+    private final String ip;
     private final PacketManager packetManager = new PacketManager();
 
     /**
      * Creates NodeClient instance with given parameters.
      *
-     * @param socket  new NodeSocket.
      * @param manager NodeManager's instance.
      */
-    public NodeClient(NodeSocket socket, NodeManager manager) {
+    public NodeClient(String ip, NodeManager manager) {
         this.manager = manager;
-        this.socket = socket;
+        this.ip = ip;
         this.start();
 
-        this.packetManager.add(ACKPacket.class, (id, ack) -> {
+        /*this.packetManager.add(ACKPacket.class, (id, ack) -> {
             System.out.println("received ACK packet from " + id);
             this.manager.putNodeId(id, this.socket.getIp());
             this.socket.safeClose();
-        });
+        });*/
+    }
+
+    /**
+     * Get target IP.
+     *
+     * @return target IP
+     */
+    public String getIp() {
+        return ip;
     }
 
     @Override
     public void run() {
         HelloPacket hello = new HelloPacket();
+        NodeSocket socket = null;
+        try {
+            while (this.run && socket == null) {
+                socket = NodeSocket.connect(this.ip, NodeServer.DEFAULT_PORT);
+                Thread.sleep(CONNECTION_DELAY);
+            }
+            if (socket != null) {
+                while (this.run && !socket.isClosed()) {
+                    socket.send(hello, this.manager.getId(), 0);
+                    Thread.sleep(ACK_DELAY);
+                    byte[] data = new byte[1024];
+                    int size = socket.read(data);
+                    if (size > 0) {
+                        Packet packet = Packet.load(data);
+                        this.packetManager.process(packet);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("NodeClient's thread failed: ", e);
+        } finally {
+            if (socket != null) socket.safeClose();
+            this.manager.removeNodeClient(this);
+            log.info("NodeClient finished: " + this.ip);
+        }
+        /*HelloPacket hello = new HelloPacket();
         while (this.run && !this.socket.isClosed()) {
             try {
                 this.socket.send(hello, this.manager.getId(), 0);
@@ -55,6 +89,6 @@ public class NodeClient extends Threaded {
             }
         }
         this.manager.removeNodeClient(this);
-        log.info("NodeClient finish: " + this.socket.getIp());
+        log.info("NodeClient finish: " + this.socket.getIp());*/
     }
 }
