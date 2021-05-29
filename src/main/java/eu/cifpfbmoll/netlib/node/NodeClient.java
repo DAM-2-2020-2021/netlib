@@ -53,6 +53,7 @@ public class NodeClient extends Threaded {
         } finally {
             close();
             this.nodeManager.removeNodeClient(this);
+            log.info("NodeClient finish: " + this.nodeSocket.getIp());
         }
     }
 }

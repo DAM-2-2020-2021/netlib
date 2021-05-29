@@ -57,6 +57,7 @@ public class NodeIdentification extends Threaded {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
                 close();
+                log.info("NodeIdentification finish: " + this.nodeSocket.getIp());
             }
         }
     }
