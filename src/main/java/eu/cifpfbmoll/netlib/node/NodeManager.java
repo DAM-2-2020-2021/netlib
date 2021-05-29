@@ -290,10 +290,11 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public void putNodeId(Integer id, String ip) {
+    public synchronized void putNodeId(Integer id, String ip) {
         this.nodes.put(id, ip);
         this.removeNodeClientByIp(ip);
         log.info(String.format("added node: %d - %s", id, ip));
+        notifyAll();
     }
 
     /**
@@ -388,14 +389,16 @@ public class NodeManager {
      *
      * @param ip NodeClient's IP to remove
      */
-    public synchronized void removeNodeClientByIp(String ip) {
-        for (NodeClient nc : this.clientList) {
-            if (StringUtils.equals(nc.getIp(), ip)) {
-                nc.stop();
-                this.clientList.remove(nc);
+    public void removeNodeClientByIp(String ip) {
+        synchronized (this.clientList) {
+            for (NodeClient nc : this.clientList) {
+                if (StringUtils.equals(nc.getIp(), ip)) {
+                    nc.stop();
+                    this.clientList.remove(nc);
+                }
             }
+            notifyAll();
         }
-        notifyAll();
     }
 
     /**
@@ -403,10 +406,12 @@ public class NodeManager {
      *
      * @param nodeClient NodeClient to remove
      */
-    public synchronized void removeNodeClient(NodeClient nodeClient) {
-        nodeClient.stop();
-        this.clientList.remove(nodeClient);
-        notifyAll();
+    public void removeNodeClient(NodeClient nodeClient) {
+        synchronized (this.clientList) {
+            nodeClient.stop();
+            this.clientList.remove(nodeClient);
+            notifyAll();
+        }
     }
 
     /**
