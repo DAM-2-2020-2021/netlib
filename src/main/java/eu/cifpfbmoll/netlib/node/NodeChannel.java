@@ -100,6 +100,7 @@ public class NodeChannel extends Threaded {
             this.sendAcknowledgment();
             for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.acknowledgmentReceived; i++) {
                 this.sleep(2000);
+                this.sendAcknowledgment();
                 log.info("Trying feedback attemp: " + i);
             }
             if (!this.acknowledgmentReceived) {

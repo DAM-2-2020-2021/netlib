@@ -24,13 +24,14 @@ public class NodeConnection extends Threaded {
     private final Node node;
     private final NodeSocket socket;
     private final NodeManager manager;
-    private final NodeChannel nodeChannel = new NodeChannel(this);
+    private final NodeChannel nodeChannel;
 
     public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
         log.info("New NodeConnection created with " + this.node.getIp());
+        this.nodeChannel = new NodeChannel(this);
         this.start();
     }
 
@@ -102,6 +103,7 @@ public class NodeConnection extends Threaded {
         while (!this.socket.isClosed()) {
             try {
                 DataInputStream inputStream = new DataInputStream(this.socket.getInputStream());
+                log.info("Waiting for Acknowledgment");
                 String message = inputStream.readUTF();
                 if (message.equals("Can you hear me?")) {
                     DataOutputStream outputStream = new DataOutputStream(this.socket.getOutputStream());
