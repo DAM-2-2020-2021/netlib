@@ -40,9 +40,10 @@ public class NodeManager {
         this.ip = ip;
         this.subnet = this.getCurrentSubnet();
         this.packetManager = new PacketManager();
-        this.discover();
         this.nodeServer = new NodeServer(this, this.ip);
-        //this.createNodeClient("192.168.1.27");
+        this.discover();
+        this.createNodeClient("192.168.1.27");
+        this.createNodeClient("192.168.1.102");
 
     }
 
