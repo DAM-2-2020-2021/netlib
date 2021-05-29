@@ -42,7 +42,7 @@ public class NodeManager {
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this,this.ip);
         //this.discover();
-        this.createNodeClient("192.168.1.27");
+        this.createNodeClient("192.168.1.102");
     }
 
     /**

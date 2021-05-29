@@ -46,6 +46,7 @@ public class NodeServer extends Threaded {
         while (this.run) {
             try {
                 this.client = new NodeSocket(this.socket.accept());
+                log.info("Conexión aceptada con "+this.client.getIp());
                 if (!this.nodeManager.nodeInHash(this.client.getIp()) && !this.ip.equals(this.client.getIp())) {
                     log.info("Creating new connection with: " + this.client.getIp());
                     new NodeIdentification(this.nodeManager, this.client);
