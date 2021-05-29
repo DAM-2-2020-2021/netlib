@@ -32,10 +32,10 @@ public class NodeIdentification extends Threaded {
                 if (message.equals("I am Damn player")) {
                     log.info("New Damn player identified! " + this.ip);
                     this.nodeManager.putNodeId(NodeManager.getIdFromIp(this.ip), this.ip);
-                    Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
+                    /*Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
                     NodeConnection nodeConnection = new NodeConnection(node, this.nodeSocket, this.nodeManager);
                     log.info("Creating NodeConnection with: " + this.nodeSocket.getIp());
-                    this.nodeManager.addNewConnection(nodeConnection);
+                    this.nodeManager.addNewConnection(nodeConnection);*/
                     this.stop();
                 } else if (message == null) {
                     log.info("Message from " + this.ip + " null.");
