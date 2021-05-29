@@ -31,6 +31,8 @@ public class NodeIdentification extends Threaded {
         this.packetManager.add(HelloPacket.class, (id, hello) -> {
             System.out.println("received hello packet from " + id);
             this.socket.send(new ACKPacket(), this.manager.getId(), id);
+            this.manager.putNodeId(id, this.socket.getIp());
+            close();
         });
     }
 

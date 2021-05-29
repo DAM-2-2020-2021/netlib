@@ -34,6 +34,8 @@ public class NodeClient extends Threaded {
 
         this.packetManager.add(ACKPacket.class, (id, ack) -> {
             System.out.println("received ACK packet from " + id);
+            this.manager.putNodeId(id, this.socket.getIp());
+            close();
         });
     }
 
