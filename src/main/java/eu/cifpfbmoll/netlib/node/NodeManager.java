@@ -3,7 +3,6 @@ package eu.cifpfbmoll.netlib.node;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
-import eu.cifpfbmoll.netlib.util.Runner;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
-    private NodeTesting nodeTesting;
     private final List<NodeClient> clientList = new ArrayList<>();
 
     public static int counter = 0;
@@ -154,11 +152,11 @@ public class NodeManager {
      * @param ip Node destination IP
      */
     private void createNodeClient(String ip) {
-        try {
-            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+        /*try {
+            this.clientList.add(new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient");
-        }
+        }*/
     }
 
     /**
@@ -291,9 +289,11 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public void putNodeId(Integer id, String ip) {
+    public synchronized void addNode(Integer id, String ip) {
         this.nodes.put(id, ip);
+        this.removeNodeClientByIp(ip);
         log.info(String.format("added node: %d - %s", id, ip));
+        notifyAll();
     }
 
     /**
@@ -356,7 +356,7 @@ public class NodeManager {
         Integer id = nodeConnection.getNode().getId();
         NodeConnection conn = nodeConnectionById(id);
         if (conn != null) {
-            conn.close();
+            conn.getNodeSocket().safeClose();
             this.removeNodeConnectionById(conn.getNode().getId());
         }
         this.nodeConnections.add(nodeConnection);
@@ -371,6 +371,43 @@ public class NodeManager {
      */
     public void removeNodeConnection(NodeConnection nodeConnection) {
         removeNodeConnectionById(nodeConnection.getNode().getId());
+    }
+
+    /**
+     * Add NodeClient to NodeClients list.
+     *
+     * @param nodeClient NodeClient to add
+     */
+    public synchronized void addNodeClient(NodeClient nodeClient) {
+        this.clientList.add(nodeClient);
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeClient from NodeClients list.
+     *
+     * @param ip NodeClient's IP to remove
+     */
+    public synchronized void removeNodeClientByIp(String ip) {
+        for (NodeClient nc : this.clientList) {
+            if (StringUtils.equals(nc.getIp(), ip)) {
+                nc.stop();
+                this.clientList.remove(nc);
+                break;
+            }
+        }
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeClient from NodeClients list.
+     *
+     * @param nodeClient NodeClient to remove
+     */
+    public synchronized void removeNodeClient(NodeClient nodeClient) {
+        nodeClient.stop();
+        this.clientList.remove(nodeClient);
+        notifyAll();
     }
 
     /**
@@ -405,65 +442,63 @@ public class NodeManager {
     }
 
     /**
-     * Scan for devices connected to the network.
+     * Check if a certain IP is a Node.
      *
-     * <p>If a device is found and responds with their ID,
-     * it will be added to the nodes table with its ID.</p>
+     * @param ip IP to check
      */
-    public void discover() {
-        // TODO: Find out why runners do not find reachable IP's
-        /*List<Runner<String>> runners = new ArrayList<>();
-        for (int i = 1; i < 255; i++) {
-            String host = subnet + "." + i;
-            Runner<String> runner = new Runner<>(host, ip -> {
-                try {
-<<<<<<< HEAD
-                    //log.info("trying: " + ip);
-=======
->>>>>>> hello-packet
-                    if (!ip.equals(this.ip)) {
-                        if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
-                            log.info(String.format("%s is reachable", ip));
-                            this.createNodeClient(ip);
-                        }
-                    }
-                } catch (UnknownHostException e) {
-                    log.error("UnknownHostException when calling a device.");
-                } catch (IOException e) {
-                    log.error("IOException when calling a device.");
-                }
-            });
-            runner.start();
-            runners.add(runner);
-        }
-        runners.forEach(runner -> {
-            runner.join(CALL_TIMEOUT);
-        });*/
-        for (int i = 0; i < 255; i++) {
-            String host = subnet + "." + i;
-            if (!host.equals(this.ip)) {
-                this.createNodeClient(host);
-            }
+    public void discover(String ip) {
+        try {
+            if (nodeInHash(ip)) return;
+            NodeClient nodeClient = new NodeClient(ip, this);
+            this.clientList.add(nodeClient);
+        } catch (Exception e) {
+            log.error("failed to create NodeClient: ", e);
         }
     }
 
-    private void startScan(String ip, Runner runner) {
-        // TODO: comprovar totes les ips que no estiguin dins del node HashMap
-        // TODO: Crear List<NodeClient> global per a poder iniciar i aturar els threads
-        // TODO: És neccesari emplear els Runners?
-        for (int i = 0; i < 255; i++) {
-            String host = subnet + "." + i;
-            if (!host.equals(this.ip) && !this.nodes.containsKey(host)) {
-                this.createNodeClient(host);
-            }
+    /**
+     * Start Node scan with the specified IPs.
+     *
+     * @param ips IPs to scan
+     */
+    public void startScan(List<String> ips) {
+        for (String ip : ips) {
+            if (StringUtils.equals(this.ip, ip) || nodeInHash(ip)) continue;
+            discover(ip);
         }
     }
 
-    private void stopScan() {
-        // TODO: aturar threads NodeClient
+    /**
+     * Stop Nodes scan.
+     */
+    public void stopScan() {
         for (NodeClient client : this.clientList) {
             client.stop();
         }
+    }
+
+    /**
+     * Get all of the IP's for a given subnet.
+     *
+     * @param subnet subnet to calculate IPs from
+     * @return list of IPs in subnet
+     */
+    public List<String> getIpsForSubnet(String subnet) {
+        List<String> ips = new ArrayList<>();
+        for (int i = 1; i < 255; i++)
+            ips.add(String.format("%s.%d", subnet, i));
+        return ips;
+    }
+
+    /**
+     * Get subnet for a given IP.
+     *
+     * @param ip IP to take subnet from
+     * @return IP's subnet
+     */
+    public String getSubnet(String ip) {
+        String[] splitIp = ip.split("\\.");
+        return String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 
     /**

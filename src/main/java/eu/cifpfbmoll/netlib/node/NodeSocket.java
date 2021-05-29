@@ -1,5 +1,9 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.annotation.PacketType;
+import eu.cifpfbmoll.netlib.packet.Packet;
+import eu.cifpfbmoll.netlib.packet.PacketParser;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +31,22 @@ public class NodeSocket implements Closeable {
      */
     public Socket getSocket() {
         return socket;
+    }
+
+    /**
+     * Attempt a connection to a device.
+     *
+     * @param ip   IP to connect to
+     * @param port Port to connect to
+     * @return NodeSocket on successful connection, null if the connection failed
+     */
+    public static NodeSocket connect(String ip, int port) {
+        try {
+            NodeSocket socket = new NodeSocket(ip, port);
+            return socket;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**
@@ -99,12 +119,49 @@ public class NodeSocket implements Closeable {
     }
 
     /**
+     * Send a PacketObject to the connected node.
+     *
+     * @param object PacketObject to send
+     * @return true if send was successful, false otherwise
+     */
+    public boolean send(Object object, Integer src, Integer dst) {
+        if (object == null) return false;
+        Class<?> clazz = object.getClass();
+        try {
+            PacketType packetType = clazz.getAnnotation(PacketType.class);
+            if (packetType == null) return false;
+            String type = Packet.formatType(packetType.value());
+            PacketParser parser = PacketParser.getInstance();
+            byte[] data = parser.serialize(object);
+            if (data == null) return false;
+            Packet packet = Packet.create(type, src, dst, data);
+            int size = packet.size();
+            if (size > Packet.MAX_PACKET_SIZE)
+                throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
+            write(packet.dump());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * Check if socket is closed.
      *
      * @return true if socket is closed, false otherwise.
      */
     public boolean isClosed() {
         return this.socket.isClosed();
+    }
+
+    /**
+     * Safely close NodeSocket and finish thread.
+     */
+    public void safeClose() {
+        try {
+            this.socket.close();
+        } catch (Exception ignored) {
+        }
     }
 
     /**

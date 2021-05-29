@@ -1,46 +1,55 @@
 package eu.cifpfbmoll.netlib.node;
 
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
+import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
+import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Threaded;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.SocketException;
 
 /**
  * Identifies if this user is a Damn user.
  */
 public class NodeIdentification extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeIdentification.class);
-    private final NodeSocket nodeSocket;
-    private final NodeManager nodeManager;
+    private static final int ATTEMPS = 10;
+    private final NodeSocket socket;
+    private final NodeManager manager;
+    private final PacketManager packetManager = new PacketManager();
 
-    public NodeIdentification(NodeSocket nodeSocket, NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
-        this.nodeSocket = nodeSocket;
+    public NodeIdentification(NodeSocket socket, NodeManager manager) {
+        this.manager = manager;
+        this.socket = socket;
         this.start();
+
+        this.packetManager.add(HelloPacket.class, (id, hello) -> {
+            this.socket.send(new ACKPacket(), this.manager.getId(), id);
+            this.manager.addNode(id, this.socket.getIp());
+            this.socket.safeClose();
+        });
     }
 
     @Override
     public void run() {
-        while (this.run) {
+        while (this.run && !this.socket.isClosed()) {
             try {
-                // TODO: Implement hello packets
-                byte[] data = new byte[1024];
-                int size = this.nodeSocket.read(data);
-                if (size < 0) continue;
-                Packet packet = Packet.load(data);
-                if (StringUtils.equals(packet.getType(), "HELO")) {
-                    log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
-                    this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
-                } else {
-                    log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
+                for (int i = 0; i < ATTEMPS && !this.socket.isClosed(); i++) {
+                    byte[] data = new byte[1024];
+                    int size = this.socket.read(data);
+                    if (size < 0) continue;
+                    Packet packet = Packet.load(data);
+                    this.packetManager.process(packet);
                 }
-                this.run = false;
+            } catch (SocketException ignored) {
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
+            } finally {
+                this.socket.safeClose();
             }
         }
     }

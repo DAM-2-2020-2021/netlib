@@ -66,25 +66,7 @@ public class NodeConnection extends Threaded {
      * @return true if send was successful, false otherwise
      */
     public boolean send(Object object) {
-        if (object == null) return false;
-        Class<?> clazz = object.getClass();
-        try {
-            PacketType packetType = clazz.getAnnotation(PacketType.class);
-            if (packetType == null) return false;
-            String type = Packet.formatType(packetType.value());
-            PacketParser parser = PacketParser.getInstance();
-            byte[] data = parser.serialize(object);
-            if (data == null) return false;
-            Packet packet = Packet.create(type, this.manager.getId(), this.node.getId(), data);
-            int size = packet.size();
-            if (size > Packet.MAX_PACKET_SIZE)
-                throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
-            this.socket.write(packet.dump());
-            return true;
-        } catch (Exception e) {
-            log.error(String.format("failed to send object of type '%s': ", clazz.getSimpleName()), e);
-            return false;
-        }
+        return this.socket.send(object, this.manager.getId(), this.node.getId());
     }
 
     /**
@@ -104,17 +86,6 @@ public class NodeConnection extends Threaded {
         }
     }
 
-    /**
-     * Close NodeSocket and finish thread.
-     */
-    public void close() {
-        try {
-            this.getNodeSocket().close();
-        } catch (Exception ignored) {
-        }
-        this.run = false;
-    }
-
     @Override
     public void run() {
         while (this.run && !this.socket.isClosed()) {
@@ -131,6 +102,7 @@ public class NodeConnection extends Threaded {
                 }
             } catch (Exception e) {
                 log.error("NodeConnection thread failed: ", e);
+                this.socket.safeClose();
             }
         }
         this.manager.removeNodeConnection(this);
