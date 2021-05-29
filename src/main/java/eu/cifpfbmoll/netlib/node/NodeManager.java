@@ -42,7 +42,7 @@ public class NodeManager {
         this.packetManager = new PacketManager();
         this.nodeServer = new NodeServer(this,this.ip);
         //this.discover();
-        this.createNodeClient("192.168.1.102");
+        this.createNodeClient("192.168.1.27");
     }
 
     /**
@@ -380,7 +380,7 @@ public class NodeManager {
     private void stopScan() {
         // TODO: aturar threads NodeClient
         for (NodeClient client : this.clientList) {
-            client.stop();
+            //client.stop();
         }
     }
 
