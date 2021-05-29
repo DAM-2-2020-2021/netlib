@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 
 /**
  * Sends messages until ip is registered inside nodes HashMap.
@@ -29,6 +30,12 @@ public class NodeClient extends Threaded {
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
         this.start();
+    }
+    public NodeClient(String ip, NodeManager nodeManager) throws IOException{
+        this.ip=ip;
+        this.nodeManager=nodeManager;
+        Socket socket=new Socket(ip,9999);
+        this.nodeSocket=new NodeSocket(socket);
     }
 
     public String getIp() {

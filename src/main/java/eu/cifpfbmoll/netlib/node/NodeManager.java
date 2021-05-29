@@ -101,10 +101,12 @@ public class NodeManager {
      */
     private void createNodeClient(String ip) {
         try {
-            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+           // this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+            this.clientList.add(new NodeClient(ip,this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
         }
+
     }
 
     /**
