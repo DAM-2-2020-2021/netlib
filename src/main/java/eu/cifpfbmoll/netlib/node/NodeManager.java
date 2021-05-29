@@ -389,17 +389,15 @@ public class NodeManager {
      *
      * @param ip NodeClient's IP to remove
      */
-    public void removeNodeClientByIp(String ip) {
-        synchronized (this.clientList) {
-            for (NodeClient nc : this.clientList) {
-                if (StringUtils.equals(nc.getIp(), ip)) {
-                    nc.stop();
-                    this.clientList.remove(nc);
-                    break;
-                }
+    public synchronized void removeNodeClientByIp(String ip) {
+        for (NodeClient nc : this.clientList) {
+            if (StringUtils.equals(nc.getIp(), ip)) {
+                nc.stop();
+                this.clientList.remove(nc);
+                break;
             }
-            notifyAll();
         }
+        notifyAll();
     }
 
     /**
@@ -407,12 +405,10 @@ public class NodeManager {
      *
      * @param nodeClient NodeClient to remove
      */
-    public void removeNodeClient(NodeClient nodeClient) {
-        synchronized (this.clientList) {
-            nodeClient.stop();
-            this.clientList.remove(nodeClient);
-            notifyAll();
-        }
+    public synchronized void removeNodeClient(NodeClient nodeClient) {
+        nodeClient.stop();
+        this.clientList.remove(nodeClient);
+        notifyAll();
     }
 
     /**
