@@ -14,6 +14,7 @@ import java.io.IOException;
  */
 public class NodeIdentification extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeIdentification.class);
+    private static final int ATTEMPS = 10;
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
 
@@ -38,15 +39,18 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run && !this.nodeSocket.isClosed()) {
             try {
-                byte[] data = new byte[1024];
-                int size = this.nodeSocket.read(data);
-                if (size < 0) continue;
-                Packet packet = Packet.load(data);
-                if (StringUtils.equals(packet.getType(), "HELO")) {
-                    log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
-                    this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
-                } else {
-                    log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
+                for (int i = 0; i < ATTEMPS; i++) {
+                    byte[] data = new byte[1024];
+                    int size = this.nodeSocket.read(data);
+                    if (size < 0) continue;
+                    Packet packet = Packet.load(data);
+                    if (StringUtils.equals(packet.getType(), "HELO")) {
+                        log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
+                        this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
+                        close();
+                    } else {
+                        log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
+                    }
                 }
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
