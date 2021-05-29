@@ -1,7 +1,9 @@
 package eu.cifpfbmoll.netlib.node;
 
 
+import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
+import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,13 +18,18 @@ import java.net.SocketException;
 public class NodeIdentification extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeIdentification.class);
     private static final int ATTEMPS = 10;
-    private final NodeSocket nodeSocket;
-    private final NodeManager nodeManager;
+    private final NodeSocket socket;
+    private final NodeManager manager;
+    private final PacketManager packetManager = new PacketManager();
 
-    public NodeIdentification(NodeSocket nodeSocket, NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
-        this.nodeSocket = nodeSocket;
+    public NodeIdentification(NodeSocket socket, NodeManager manager) {
+        this.manager = manager;
+        this.socket = socket;
         this.start();
+
+        this.packetManager.add(HelloPacket.class, (id, hello) -> {
+            System.out.println("received hello packet from " + id);
+        });
     }
 
     /**
@@ -31,7 +38,7 @@ public class NodeIdentification extends Threaded {
     public void close() {
         try {
             log.info("closing NodeIdentification socket");
-            this.nodeSocket.close();
+            this.socket.close();
         } catch (Exception ignored) {
         }
         this.run = false;
@@ -39,18 +46,36 @@ public class NodeIdentification extends Threaded {
 
     @Override
     public void run() {
-        while (this.run && !this.nodeSocket.isClosed()) {
+        while (this.run && !this.socket.isClosed()) {
             try {
-                for (int i = 0; i < ATTEMPS && !this.nodeSocket.isClosed(); i++) {
+                for (int i = 0; i < ATTEMPS && !this.socket.isClosed(); i++) {
                     byte[] data = new byte[1024];
-                    int size = this.nodeSocket.read(data);
+                    int size = this.socket.read(data);
+                    if (size < 0) continue;
+                    Packet packet = Packet.load(data);
+                    this.packetManager.process(packet);
+                }
+            } catch (SocketException ignored) {
+                log.error("socket: ", ignored);
+            } catch (IOException e) {
+                log.error("NodeIdentification's thread failed: ", e);
+            } finally {
+                close();
+                log.info("NodeIdentification finish: " + this.socket.getIp());
+            }
+        }
+        /*while (this.run && !this.socket.isClosed()) {
+            try {
+                for (int i = 0; i < ATTEMPS && !this.socket.isClosed(); i++) {
+                    byte[] data = new byte[1024];
+                    int size = this.socket.read(data);
                     if (size < 0) continue;
                     Packet packet = Packet.load(data);
                     if (StringUtils.equals(packet.getType(), "HELO")) {
-                        this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
+                        this.manager.putNodeId(packet.getSourceId(), this.socket.getIp());
                         close();
                     } else {
-                        log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
+                        log.info(String.format("%s is not a netlib node", this.socket.getIp()));
                     }
                 }
             } catch (SocketException ignored) {
@@ -59,8 +84,8 @@ public class NodeIdentification extends Threaded {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
                 close();
-                log.info("NodeIdentification finish: " + this.nodeSocket.getIp());
+                log.info("NodeIdentification finish: " + this.socket.getIp());
             }
-        }
+        }*/
     }
 }
