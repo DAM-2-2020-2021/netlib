@@ -32,7 +32,7 @@ public class NodeServer extends Threaded {
         this.ip = ip;
         this.nodeManager = manager;
         try {
-            this.socket = new ServerSocket(DEFAULT_PORT);
+            this.socket = new ServerSocket(9999);
         } catch (IOException e) {
             log.error("Error while creating ServerSocket", e);
         }
