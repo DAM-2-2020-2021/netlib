@@ -23,7 +23,7 @@ public class NodeServer implements Runnable {
     private NodeSocket client;
     private final NodeManager nodeManager;
     private String ip;
-    private Thread t;
+    public Thread t;
     private boolean run;
 
     /**
@@ -37,12 +37,11 @@ public class NodeServer implements Runnable {
         this.nodeManager = manager;
         try {
             this.socket = new ServerSocket(9999);
-            log.info("ServerSocket esperando conexión.");
         } catch (IOException e) {
             log.error("Error while creating ServerSocket", e);
         }
         this.t=new Thread(this);
-        t.start();
+        //this.t.start();
         //this.start();
     }
 
@@ -50,6 +49,7 @@ public class NodeServer implements Runnable {
     public void run() {
         while (this.run) {
             try {
+                log.info("ServerSocket esperando conexión.");
                 this.client = new NodeSocket(this.socket.accept());
                 log.info("Conexión aceptada con "+this.client.getIp());
                 if (!this.nodeManager.nodeInHash(this.client.getIp()) && !this.ip.equals(this.client.getIp())) {

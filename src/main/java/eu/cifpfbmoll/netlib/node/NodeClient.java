@@ -15,26 +15,19 @@ public class NodeClient implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
     private static final int DELAY = 300;
     private String ip;
-    private Thread t;
+    public Thread t;
     private boolean run;
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
 
-    /**
-     * Creates NodeClient instance with given parameters.
-     *
-     * @param ip          discovered ip.
-     * @param nodeSocket  new NodeSocket.
-     * @param nodeManager NodeManager's instance.
-     */
-    public NodeClient(String ip, NodeSocket nodeSocket, NodeManager nodeManager) {
+   /* public NodeClient(String ip, NodeSocket nodeSocket, NodeManager nodeManager) {
         this.ip = ip;
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
         this.run=true;
         this.t=new Thread(this);
         t.start();
-    }
+    }*/
 
     public NodeClient(String ip, NodeManager nodeManager) throws IOException {
         this.ip = ip;
@@ -43,7 +36,7 @@ public class NodeClient implements Runnable {
         this.nodeSocket = new NodeSocket(socket);
         this.run=true;
         this.t=new Thread(this);
-        t.start();
+        //this.t.start();
         //this.start();
     }
 
@@ -66,6 +59,7 @@ public class NodeClient implements Runnable {
 
     @Override
     public void run() {
+        log.info("Cliente modo on");
         while (this.run) {
             this.sendHello();
             try {
