@@ -86,6 +86,7 @@ public class NodeChannel extends Threaded {
         try {
             DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getOutputStream());
             outputStream.writeUTF("Can you hear me?");
+            log.info("Sending acknowledgment to: "+this.nodeConnection.getNodeSocket().getIp());
             outputStream.flush();
         } catch (IOException e) {
             log.error("Error sending Acknowledgment", e);
@@ -98,7 +99,7 @@ public class NodeChannel extends Threaded {
             this.acknowledgmentReceived = false;
             this.sendAcknowledgment();
             for (int i = 0; i < COMMUNICATION_ATTEMPTS && !this.acknowledgmentReceived; i++) {
-                this.sleep(500);
+                this.sleep(2000);
                 log.info("Trying feedback attemp: " + i);
             }
             if (!this.acknowledgmentReceived) {
