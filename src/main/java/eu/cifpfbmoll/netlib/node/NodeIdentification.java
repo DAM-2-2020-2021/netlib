@@ -36,7 +36,7 @@ public class NodeIdentification extends Threaded {
 
     @Override
     public void run() {
-        while (this.run) {
+        while (this.run && !this.nodeSocket.isClosed()) {
             try {
                 byte[] data = new byte[1024];
                 int size = this.nodeSocket.read(data);
@@ -54,5 +54,6 @@ public class NodeIdentification extends Threaded {
                 close();
             }
         }
+        log.info("NodeIndentification thread finished");
     }
 }

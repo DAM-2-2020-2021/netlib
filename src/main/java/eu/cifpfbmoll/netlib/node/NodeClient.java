@@ -5,12 +5,13 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketException;
+
 /**
  * Sends messages until connects with another pc.
  */
 public class NodeClient extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
-    private static final int ATTEMPTS = 10;
     private static final int DELAY = 300;
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
@@ -40,20 +41,19 @@ public class NodeClient extends Threaded {
 
     @Override
     public void run() {
-        Packet packet = Packet.create("HELO", 0, 0);
-        while (this.run && !this.nodeManager.nodeInHash(this.nodeSocket.getIp()) && !this.nodeSocket.isClosed()) {
-            try {
-                for (int i = 0; i < ATTEMPTS; i++) {
-                    log.info("attempt: " + i);
-                    this.nodeSocket.write(packet.dump());
-                    Thread.sleep(DELAY);
-                }
-            } catch (Exception e) {
-                log.error("NodeClient's thread failed: ", e);
-            } finally {
-                close();
+        Packet packet = Packet.create("HELO", this.nodeManager.getId(), 0);
+        try {
+            while (this.run && !this.nodeManager.nodeInHash(this.nodeSocket.getIp()) && !this.nodeSocket.isClosed()) {
+                this.nodeSocket.write(packet.dump());
+                Thread.sleep(DELAY);
             }
+        } catch (SocketException ignored) {
+        } catch (Exception e) {
+            log.error("NodeClient's thread failed: ", e);
+        } finally {
+            close();
+            this.nodeManager.removeNodeClient(this);
+            log.info("NodeClient's thread finished");
         }
-        this.nodeManager.removeNodeClient(this);
     }
 }
