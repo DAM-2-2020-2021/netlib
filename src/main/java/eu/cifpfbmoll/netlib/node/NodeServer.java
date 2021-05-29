@@ -34,6 +34,7 @@ public class NodeServer extends Threaded {
         this.nodeManager = manager;
         try {
             this.socket = new ServerSocket(9999);
+            log.info("ServerSocket esperando conexión.");
         } catch (IOException e) {
             log.error("Error while creating ServerSocket", e);
         }

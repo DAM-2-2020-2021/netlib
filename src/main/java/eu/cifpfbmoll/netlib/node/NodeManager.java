@@ -103,6 +103,7 @@ public class NodeManager {
         try {
            // this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
             this.clientList.add(new NodeClient(ip,this));
+            log.info("NodeClient creado exitosamente");
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
         }

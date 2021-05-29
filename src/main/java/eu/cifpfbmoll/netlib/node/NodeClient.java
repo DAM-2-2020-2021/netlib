@@ -36,6 +36,7 @@ public class NodeClient extends Threaded {
         this.nodeManager=nodeManager;
         Socket socket=new Socket(ip,9999);
         this.nodeSocket=new NodeSocket(socket);
+        this.start();
     }
 
     public String getIp() {
