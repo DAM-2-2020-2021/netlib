@@ -50,7 +50,7 @@ public class NodeClient extends Threaded {
             }
             if (this.socket != null) {
                 this.packetManager.add(ACKPacket.class, (id, ack) -> {
-                    this.manager.putNodeId(id, this.socket.getIp());
+                    this.manager.addNode(id, this.socket.getIp());
                     this.socket.safeClose();
                 });
                 while (this.run && !this.socket.isClosed()) {

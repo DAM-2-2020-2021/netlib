@@ -289,7 +289,7 @@ public class NodeManager {
      * @param id node ID
      * @param ip node IP address
      */
-    public synchronized void putNodeId(Integer id, String ip) {
+    public synchronized void addNode(Integer id, String ip) {
         this.nodes.put(id, ip);
         this.removeNodeClientByIp(ip);
         log.info(String.format("added node: %d - %s", id, ip));
@@ -477,11 +477,28 @@ public class NodeManager {
         }
     }
 
+    /**
+     * Get all of the IP's for a given subnet.
+     *
+     * @param subnet subnet to calculate IPs from
+     * @return list of IPs in subnet
+     */
     public List<String> getIpsForSubnet(String subnet) {
         List<String> ips = new ArrayList<>();
         for (int i = 1; i < 255; i++)
             ips.add(String.format("%s.%d", subnet, i));
         return ips;
+    }
+
+    /**
+     * Get subnet for a given IP.
+     *
+     * @param ip IP to take subnet from
+     * @return IP's subnet
+     */
+    public String getSubnet(String ip) {
+        String[] splitIp = ip.split("\\.");
+        return String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 
     /**
