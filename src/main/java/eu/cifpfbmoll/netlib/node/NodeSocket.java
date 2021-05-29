@@ -1,5 +1,9 @@
 package eu.cifpfbmoll.netlib.node;
 
+import eu.cifpfbmoll.netlib.annotation.PacketType;
+import eu.cifpfbmoll.netlib.packet.Packet;
+import eu.cifpfbmoll.netlib.packet.PacketParser;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,6 +100,33 @@ public class NodeSocket implements Closeable {
      */
     public int read(byte[] data, int offset, int length) throws IOException {
         return this.inputStream.read(data, offset, length);
+    }
+
+    /**
+     * Send a PacketObject to the connected node.
+     *
+     * @param object PacketObject to send
+     * @return true if send was successful, false otherwise
+     */
+    public boolean send(Object object, Integer src, Integer dst) {
+        if (object == null) return false;
+        Class<?> clazz = object.getClass();
+        try {
+            PacketType packetType = clazz.getAnnotation(PacketType.class);
+            if (packetType == null) return false;
+            String type = Packet.formatType(packetType.value());
+            PacketParser parser = PacketParser.getInstance();
+            byte[] data = parser.serialize(object);
+            if (data == null) return false;
+            Packet packet = Packet.create(type, src, dst, data);
+            int size = packet.size();
+            if (size > Packet.MAX_PACKET_SIZE)
+                throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
+            write(packet.dump());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

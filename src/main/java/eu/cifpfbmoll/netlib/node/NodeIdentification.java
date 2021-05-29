@@ -1,6 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
 
+import eu.cifpfbmoll.netlib.internal.ACKPacket;
 import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
@@ -29,6 +30,7 @@ public class NodeIdentification extends Threaded {
 
         this.packetManager.add(HelloPacket.class, (id, hello) -> {
             System.out.println("received hello packet from " + id);
+            this.socket.send(new ACKPacket(), this.manager.getId(), id);
         });
     }
 

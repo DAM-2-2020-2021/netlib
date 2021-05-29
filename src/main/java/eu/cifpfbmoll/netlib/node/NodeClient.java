@@ -1,6 +1,7 @@
 package eu.cifpfbmoll.netlib.node;
 
 import eu.cifpfbmoll.netlib.internal.ACKPacket;
+import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Threaded;
@@ -50,13 +51,17 @@ public class NodeClient extends Threaded {
 
     @Override
     public void run() {
+        HelloPacket hello = new HelloPacket();
         while (this.run && !this.socket.isClosed()) {
             try {
+                this.socket.send(hello, this.manager.getId(), 0);
+                Thread.sleep(DELAY);
                 byte[] data = new byte[1024];
                 int size = this.socket.read(data);
-                if (size < 0) continue;
-                Packet packet = Packet.load(data);
-                this.packetManager.process(packet);
+                if (size > 0) {
+                    Packet packet = Packet.load(data);
+                    this.packetManager.process(packet);
+                }
             } catch (Exception e) {
                 log.error("NodeConnection thread failed: ", e);
                 this.close();
