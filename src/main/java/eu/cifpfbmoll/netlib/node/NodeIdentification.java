@@ -30,6 +30,7 @@ public class NodeIdentification extends Threaded {
      */
     public void close() {
         try {
+            log.info("closing NodeIdentification socket");
             this.nodeSocket.close();
         } catch (Exception ignored) {
         }
@@ -40,7 +41,7 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run && !this.nodeSocket.isClosed()) {
             try {
-                for (int i = 0; i < ATTEMPS; i++) {
+                for (int i = 0; i < ATTEMPS && !this.nodeSocket.isClosed(); i++) {
                     byte[] data = new byte[1024];
                     int size = this.nodeSocket.read(data);
                     if (size < 0) continue;

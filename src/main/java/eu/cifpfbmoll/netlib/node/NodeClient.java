@@ -33,6 +33,7 @@ public class NodeClient extends Threaded {
      */
     public void close() {
         try {
+            log.info("closing NodeClient socket");
             this.nodeSocket.close();
         } catch (Exception ignored) {
         }
