@@ -53,6 +53,7 @@ public class NodeIdentification extends Threaded {
                     }
                 }
             } catch (SocketException ignored) {
+                log.error("socket: ", ignored);
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {

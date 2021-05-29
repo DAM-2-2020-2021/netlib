@@ -49,6 +49,7 @@ public class NodeClient extends Threaded {
                 Thread.sleep(DELAY);
             }
         } catch (SocketException ignored) {
+            log.error("socket: ", ignored);
         } catch (Exception e) {
             log.error("NodeClient's thread failed: ", e);
         } finally {
