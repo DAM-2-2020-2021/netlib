@@ -34,6 +34,22 @@ public class NodeSocket implements Closeable {
     }
 
     /**
+     * Attempt a connection to a device.
+     *
+     * @param ip   IP to connect to
+     * @param port Port to connect to
+     * @return NodeSocket on successful connection, null if the connection failed
+     */
+    public static NodeSocket connect(String ip, int port) {
+        try {
+            NodeSocket socket = new NodeSocket(ip, port);
+            return socket;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /**
      * Create a new NodeSocket with a host and port.
      *
      * @param host host name
@@ -136,6 +152,16 @@ public class NodeSocket implements Closeable {
      */
     public boolean isClosed() {
         return this.socket.isClosed();
+    }
+
+    /**
+     * Safely close NodeSocket and finish thread.
+     */
+    public void safeClose() {
+        try {
+            this.socket.close();
+        } catch (Exception ignored) {
+        }
     }
 
     /**

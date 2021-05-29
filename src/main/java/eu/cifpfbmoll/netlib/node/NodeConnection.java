@@ -86,17 +86,6 @@ public class NodeConnection extends Threaded {
         }
     }
 
-    /**
-     * Close NodeSocket and finish thread.
-     */
-    public void close() {
-        try {
-            this.getNodeSocket().close();
-        } catch (Exception ignored) {
-        }
-        this.run = false;
-    }
-
     @Override
     public void run() {
         while (this.run && !this.socket.isClosed()) {
@@ -113,7 +102,7 @@ public class NodeConnection extends Threaded {
                 }
             } catch (Exception e) {
                 log.error("NodeConnection thread failed: ", e);
-                this.close();
+                this.socket.safeClose();
             }
         }
         this.manager.removeNodeConnection(this);

@@ -6,7 +6,6 @@ import eu.cifpfbmoll.netlib.internal.HelloPacket;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import eu.cifpfbmoll.netlib.util.Threaded;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,20 +31,8 @@ public class NodeIdentification extends Threaded {
             System.out.println("received hello packet from " + id);
             this.socket.send(new ACKPacket(), this.manager.getId(), id);
             this.manager.putNodeId(id, this.socket.getIp());
-            close();
+            this.socket.safeClose();
         });
-    }
-
-    /**
-     * Close NodeSocket and finish thread.
-     */
-    public void close() {
-        try {
-            log.info("closing NodeIdentification socket");
-            this.socket.close();
-        } catch (Exception ignored) {
-        }
-        this.run = false;
     }
 
     @Override
@@ -64,32 +51,9 @@ public class NodeIdentification extends Threaded {
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
-                close();
+                this.socket.safeClose();
                 log.info("NodeIdentification finish: " + this.socket.getIp());
             }
         }
-        /*while (this.run && !this.socket.isClosed()) {
-            try {
-                for (int i = 0; i < ATTEMPS && !this.socket.isClosed(); i++) {
-                    byte[] data = new byte[1024];
-                    int size = this.socket.read(data);
-                    if (size < 0) continue;
-                    Packet packet = Packet.load(data);
-                    if (StringUtils.equals(packet.getType(), "HELO")) {
-                        this.manager.putNodeId(packet.getSourceId(), this.socket.getIp());
-                        close();
-                    } else {
-                        log.info(String.format("%s is not a netlib node", this.socket.getIp()));
-                    }
-                }
-            } catch (SocketException ignored) {
-                log.error("socket: ", ignored);
-            } catch (IOException e) {
-                log.error("NodeIdentification's thread failed: ", e);
-            } finally {
-                close();
-                log.info("NodeIdentification finish: " + this.socket.getIp());
-            }
-        }*/
     }
 }
