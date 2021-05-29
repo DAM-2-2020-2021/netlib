@@ -105,6 +105,8 @@ public class NodeChannel extends Threaded {
             if (!this.acknowledgmentReceived) {
                 log.info("Missing acknowledgement. Removing socket.");
                 this.quitSocket();
+            }else{
+                this.sleep(3000);
             }
         }
     }
