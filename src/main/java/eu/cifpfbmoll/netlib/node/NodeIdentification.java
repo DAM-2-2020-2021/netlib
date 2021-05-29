@@ -27,7 +27,6 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                // TODO: Implement hello packets
                 byte[] data = new byte[1024];
                 int size = this.nodeSocket.read(data);
                 if (size < 0) continue;
@@ -38,9 +37,10 @@ public class NodeIdentification extends Threaded {
                 } else {
                     log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
                 }
-                this.run = false;
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
+            } finally {
+                this.run = false;
             }
         }
     }

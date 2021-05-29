@@ -27,7 +27,6 @@ public class NodeManager {
     private final PacketManager packetManager;
     private final String ip;
     private String subnet;
-    private NodeTesting nodeTesting;
     private final List<NodeClient> clientList = new ArrayList<>();
 
     public static int counter = 0;
@@ -155,7 +154,7 @@ public class NodeManager {
      */
     private void createNodeClient(String ip) {
         try {
-            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
+            this.clientList.add(new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient");
         }
@@ -374,6 +373,26 @@ public class NodeManager {
     }
 
     /**
+     * Add NodeClient to NodeClients list.
+     *
+     * @param nodeClient NodeClient to add
+     */
+    public synchronized void addNodeClient(NodeClient nodeClient) {
+        this.clientList.add(nodeClient);
+        notifyAll();
+    }
+
+    /**
+     * Remove NodeClient from NodeClients list.
+     *
+     * @param nodeClient NodeClient to remove
+     */
+    public synchronized void removeNodeClient(NodeClient nodeClient) {
+        this.clientList.remove(nodeClient);
+        notifyAll();
+    }
+
+    /**
      * Register a Packet Handler for Packet type.
      *
      * @param clazz   object class to handle
@@ -417,10 +436,6 @@ public class NodeManager {
             String host = subnet + "." + i;
             Runner<String> runner = new Runner<>(host, ip -> {
                 try {
-<<<<<<< HEAD
-                    //log.info("trying: " + ip);
-=======
->>>>>>> hello-packet
                     if (!ip.equals(this.ip)) {
                         if (InetAddress.getByName(ip).isReachable(CALL_TIMEOUT)) {
                             log.info(String.format("%s is reachable", ip));
@@ -444,6 +459,16 @@ public class NodeManager {
             if (!host.equals(this.ip)) {
                 this.createNodeClient(host);
             }
+        }
+    }
+
+    public void discover(String ip) {
+        try {
+            if (nodeInHash(ip)) return;
+            NodeClient nodeClient = new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
+            this.clientList.add(nodeClient);
+        } catch (Exception e) {
+            log.error("failed to create NodeClient: ", e);
         }
     }
 

@@ -131,6 +131,7 @@ public class NodeConnection extends Threaded {
                 }
             } catch (Exception e) {
                 log.error("NodeConnection thread failed: ", e);
+                this.close();
             }
         }
         this.manager.removeNodeConnection(this);
