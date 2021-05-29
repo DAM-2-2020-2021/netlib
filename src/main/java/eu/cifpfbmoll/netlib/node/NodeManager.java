@@ -389,9 +389,12 @@ public class NodeManager {
      * @param ip NodeClient's IP to remove
      */
     public synchronized void removeNodeClientByIp(String ip) {
-        for (NodeClient nc : this.clientList)
-            if (StringUtils.equals(nc.getIp(), ip))
-                removeNodeClient(nc);
+        for (NodeClient nc : this.clientList) {
+            if (StringUtils.equals(nc.getIp(), ip)) {
+                nc.stop();
+                this.clientList.remove(nc);
+            }
+        }
         notifyAll();
     }
 
