@@ -41,14 +41,17 @@ public class NodeClient extends Threaded {
     @Override
     public void run() {
         Packet packet = Packet.create("HELO", 0, 0);
-        while (this.run && this.nodeManager.nodeInHash(this.nodeSocket.getIp()) && !this.nodeSocket.isClosed()) {
+        while (this.run && !this.nodeManager.nodeInHash(this.nodeSocket.getIp()) && !this.nodeSocket.isClosed()) {
             try {
                 for (int i = 0; i < ATTEMPTS; i++) {
+                    log.info("attempt: " + i);
                     this.nodeSocket.write(packet.dump());
                     Thread.sleep(DELAY);
                 }
             } catch (Exception e) {
                 log.error("NodeClient's thread failed: ", e);
+            } finally {
+                close();
             }
         }
         this.nodeManager.removeNodeClient(this);

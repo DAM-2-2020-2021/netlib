@@ -23,6 +23,17 @@ public class NodeIdentification extends Threaded {
         this.start();
     }
 
+    /**
+     * Close NodeSocket and finish thread.
+     */
+    public void close() {
+        try {
+            this.nodeSocket.close();
+        } catch (Exception ignored) {
+        }
+        this.run = false;
+    }
+
     @Override
     public void run() {
         while (this.run) {
@@ -40,7 +51,7 @@ public class NodeIdentification extends Threaded {
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
-                this.run = false;
+                close();
             }
         }
     }

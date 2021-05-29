@@ -463,6 +463,7 @@ public class NodeManager {
     }
 
     public void discover(String ip) {
+        log.info("discovering " + ip);
         try {
             if (nodeInHash(ip)) return;
             NodeClient nodeClient = new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this);
