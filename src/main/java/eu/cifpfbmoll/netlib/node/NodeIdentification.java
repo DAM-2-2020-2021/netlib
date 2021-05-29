@@ -27,7 +27,7 @@ public class NodeIdentification extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                DataInputStream inputStream = new DataInputStream(this.nodeSocket.getSocket().getInputStream());
+                DataInputStream inputStream = new DataInputStream(this.nodeSocket.getInputStream());
                 String message = inputStream.readUTF();
                 if (message.equals("I am Damn player")) {
                     log.info("New Damn player identified! " + this.ip);
@@ -35,6 +35,8 @@ public class NodeIdentification extends Threaded {
                     this.stop();
                 } else if (message == null) {
                     log.info("Message from " + this.ip + " null.");
+                    this.stop();
+                }else{
                     this.stop();
                 }
             } catch (IOException e) {

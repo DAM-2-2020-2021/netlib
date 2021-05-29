@@ -20,6 +20,7 @@ public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
+    private NodeSocket client;
     private final NodeManager nodeManager;
     private String ip;
 
@@ -43,14 +44,14 @@ public class NodeServer extends Threaded {
     public void run() {
         while (this.run) {
             try {
-                NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
-                if (!this.nodeManager.nodeInHash(nodeSocket.getIp()) && !this.ip.equals(nodeSocket.getIp())) {
-                    log.info("Creating new connection with: " + nodeSocket.getIp());
-                    new NodeIdentification(this.nodeManager, nodeSocket);
+                this.client = new NodeSocket(this.socket.accept());
+                if (!this.nodeManager.nodeInHash(this.client.getIp()) && !this.ip.equals(this.client.getIp())) {
+                    log.info("Creating new connection with: " + this.client.getIp());
+                    new NodeIdentification(this.nodeManager, this.client);
                 } else {
                     Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
-                    NodeConnection nodeConnection = new NodeConnection(node, nodeSocket, this.nodeManager);
-                    log.info("Creating NodeConnection with: " + nodeSocket.getIp());
+                    NodeConnection nodeConnection = new NodeConnection(node, this.client, this.nodeManager);
+                    log.info("Creating NodeConnection with: " + this.client.getIp());
                     this.nodeManager.addNewConnection(nodeConnection);
                 }
             } catch (Exception e) {

@@ -47,7 +47,7 @@ public class NodeClient extends Threaded {
      */
     private void sendHello() {
         try {
-            DataOutputStream outputStream = new DataOutputStream(this.nodeSocket.getSocket().getOutputStream());
+            DataOutputStream outputStream = new DataOutputStream(this.nodeSocket.getOutputStream());
             outputStream.writeUTF("I am Damn player");
             outputStream.flush();
         } catch (IOException e) {

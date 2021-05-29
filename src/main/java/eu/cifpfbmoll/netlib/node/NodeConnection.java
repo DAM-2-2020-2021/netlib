@@ -101,10 +101,10 @@ public class NodeConnection extends Threaded {
             }*/
         while (!this.socket.isClosed()) {
             try {
-                DataInputStream inputStream = new DataInputStream(this.socket.getSocket().getInputStream());
+                DataInputStream inputStream = new DataInputStream(this.socket.getInputStream());
                 String message = inputStream.readUTF();
                 if (message.equals("Can you hear me?")) {
-                    DataOutputStream outputStream = new DataOutputStream(this.socket.getSocket().getOutputStream());
+                    DataOutputStream outputStream = new DataOutputStream(this.socket.getOutputStream());
                     outputStream.writeUTF("I can hear you");
                     outputStream.flush();
                     log.info("Answering acknowledgment from " + this.node.getIp());

@@ -56,10 +56,10 @@ public class NodeChannel extends Threaded {
      */
     private void managingAcknowledgment() {
         try {
-            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getSocket().getInputStream());
+            DataInputStream inputStream = new DataInputStream(this.nodeConnection.getNodeSocket().getInputStream());
             String message = inputStream.readUTF();
             if ("Can you hear me?".equals(message)) {
-                DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
+                DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getOutputStream());
                 outputStream.writeUTF("Yes I do");
                 outputStream.flush();
                 log.info("Answering Acknowledgement");
@@ -84,7 +84,7 @@ public class NodeChannel extends Threaded {
 
     private void sendAcknowledgment() {
         try {
-            DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getSocket().getOutputStream());
+            DataOutputStream outputStream = new DataOutputStream(this.nodeConnection.getNodeSocket().getOutputStream());
             outputStream.writeUTF("Can you hear me?");
             outputStream.flush();
         } catch (IOException e) {
