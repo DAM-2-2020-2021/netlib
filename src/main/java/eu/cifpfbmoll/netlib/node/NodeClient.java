@@ -41,6 +41,7 @@ public class NodeClient extends Threaded {
 
     @Override
     public void run() {
+        log.info("NodeClient connecting to: " + this.nodeSocket.getIp());
         Packet packet = Packet.create("HELO", this.nodeManager.getId(), 0);
         try {
             while (this.run && !this.nodeManager.nodeInHash(this.nodeSocket.getIp()) && !this.nodeSocket.isClosed()) {
