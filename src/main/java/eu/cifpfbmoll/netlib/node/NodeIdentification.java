@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.SocketException;
 
 /**
  * Identifies if this user is a Damn user.
@@ -45,19 +46,18 @@ public class NodeIdentification extends Threaded {
                     if (size < 0) continue;
                     Packet packet = Packet.load(data);
                     if (StringUtils.equals(packet.getType(), "HELO")) {
-                        log.info(String.format("received Hello packet from %s", this.nodeSocket.getIp()));
                         this.nodeManager.putNodeId(packet.getSourceId(), this.nodeSocket.getIp());
                         close();
                     } else {
                         log.info(String.format("%s is not a netlib node", this.nodeSocket.getIp()));
                     }
                 }
+            } catch (SocketException ignored) {
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
                 close();
             }
         }
-        log.info("NodeIndentification thread finished");
     }
 }
