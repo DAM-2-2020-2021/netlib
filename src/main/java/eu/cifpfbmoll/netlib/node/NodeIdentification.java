@@ -10,17 +10,22 @@ import java.io.IOException;
 /**
  * Identifies Damn player and adds it to nodes HashMap
  */
-public class NodeIdentification extends Threaded {
+public class NodeIdentification implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(NodeIdentification.class);
     private NodeManager nodeManager;
     private NodeSocket nodeSocket;
     private String ip;
+    private Thread t;
+    private boolean run;
 
     public NodeIdentification(NodeManager nodeManager, NodeSocket nodeSocket) {
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
         this.ip = nodeSocket.getIp();
-        this.start();
+        this.run=true;
+        this.t=new Thread(this);
+        this.t.start();
+        //this.start();
     }
 
     @Override
@@ -32,12 +37,12 @@ public class NodeIdentification extends Threaded {
                 if (message.equals("I am Damn player")) {
                     log.info("New Damn player identified! " + this.ip);
                     this.nodeManager.putNodeId(NodeManager.getIdFromIp(this.ip), this.ip);
-                    this.stop();
+                    this.run=false;
                 } else if (message == null) {
                     log.info("Message from " + this.ip + " null.");
-                    this.stop();
+                    this.run=false;
                 }else{
-                    this.stop();
+                    this.run=false;
                 }
             } catch (IOException e) {
                 log.error("Error in NodeIdentification", e.getMessage());

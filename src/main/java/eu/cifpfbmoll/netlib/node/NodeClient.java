@@ -11,10 +11,12 @@ import java.net.Socket;
 /**
  * Sends messages until ip is registered inside nodes HashMap.
  */
-public class NodeClient extends Threaded {
+public class NodeClient implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(NodeClient.class);
     private static final int DELAY = 300;
     private String ip;
+    private Thread t;
+    private boolean run;
     private final NodeSocket nodeSocket;
     private final NodeManager nodeManager;
 
@@ -29,7 +31,9 @@ public class NodeClient extends Threaded {
         this.ip = ip;
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
-        this.start();
+        this.run=true;
+        this.t=new Thread(this);
+        t.start();
     }
 
     public NodeClient(String ip, NodeManager nodeManager) throws IOException {
@@ -37,7 +41,10 @@ public class NodeClient extends Threaded {
         this.nodeManager = nodeManager;
         Socket socket = new Socket(ip, 9999);
         this.nodeSocket = new NodeSocket(socket);
-        this.start();
+        this.run=true;
+        this.t=new Thread(this);
+        t.start();
+        //this.start();
     }
 
     public String getIp() {
@@ -61,9 +68,13 @@ public class NodeClient extends Threaded {
     public void run() {
         while (this.run) {
             this.sendHello();
-            this.sleep(DELAY);
+            try {
+                this.t.sleep(DELAY);
+            } catch (InterruptedException e) {
+                log.error("Error en el sleep");
+            }
             if (this.nodeManager.nodeInHash(this.ip)) {
-                this.stop();
+                this.run=false;
             }
         }
         this.nodeManager.removeNodeClient(this);
