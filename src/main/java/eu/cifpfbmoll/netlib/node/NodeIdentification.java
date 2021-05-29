@@ -28,7 +28,6 @@ public class NodeIdentification extends Threaded {
         this.start();
 
         this.packetManager.add(HelloPacket.class, (id, hello) -> {
-            System.out.println("received hello packet from " + id);
             this.socket.send(new ACKPacket(), this.manager.getId(), id);
             this.manager.putNodeId(id, this.socket.getIp());
             this.socket.safeClose();
@@ -47,12 +46,10 @@ public class NodeIdentification extends Threaded {
                     this.packetManager.process(packet);
                 }
             } catch (SocketException ignored) {
-                log.error("socket: ", ignored);
             } catch (IOException e) {
                 log.error("NodeIdentification's thread failed: ", e);
             } finally {
                 this.socket.safeClose();
-                log.info("NodeIdentification finish: " + this.socket.getIp());
             }
         }
     }

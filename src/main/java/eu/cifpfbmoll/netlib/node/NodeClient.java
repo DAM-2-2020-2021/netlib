@@ -50,7 +50,6 @@ public class NodeClient extends Threaded {
             }
             if (this.socket != null) {
                 this.packetManager.add(ACKPacket.class, (id, ack) -> {
-                    System.out.println("received ACK packet from " + id);
                     this.manager.putNodeId(id, this.socket.getIp());
                     this.socket.safeClose();
                 });
@@ -70,25 +69,6 @@ public class NodeClient extends Threaded {
         } finally {
             if (this.socket != null) this.socket.safeClose();
             this.manager.removeNodeClient(this);
-            log.info("NodeClient finished: " + this.ip);
         }
-        /*HelloPacket hello = new HelloPacket();
-        while (this.run && !this.socket.isClosed()) {
-            try {
-                this.socket.send(hello, this.manager.getId(), 0);
-                Thread.sleep(DELAY);
-                byte[] data = new byte[1024];
-                int size = this.socket.read(data);
-                if (size > 0) {
-                    Packet packet = Packet.load(data);
-                    this.packetManager.process(packet);
-                }
-            } catch (Exception e) {
-                log.error("NodeConnection thread failed: ", e);
-                this.socket.safeClose();
-            }
-        }
-        this.manager.removeNodeClient(this);
-        log.info("NodeClient finish: " + this.socket.getIp());*/
     }
 }
