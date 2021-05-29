@@ -29,7 +29,7 @@ public class NodeServer extends Threaded {
      * @param manager NodeManager instance.
      */
     public NodeServer(NodeManager manager, String ip) {
-        this.ip=ip;
+        this.ip = ip;
         this.nodeManager = manager;
         try {
             this.socket = new ServerSocket(DEFAULT_PORT);
@@ -46,9 +46,12 @@ public class NodeServer extends Threaded {
                 NodeSocket nodeSocket = new NodeSocket(this.socket.accept());
                 if (!this.nodeManager.nodeInHash(nodeSocket.getIp()) && !this.ip.equals(nodeSocket.getIp())) {
                     log.info("Creating new connection with: " + nodeSocket.getIp());
-                    new NodeIdentification(this.nodeManager,nodeSocket);
-                }else{
-                    //TODO: send Nodesocket to NodeConnection in order to manage packets. If NodeConnection is dead, we have to create another one.
+                    new NodeIdentification(this.nodeManager, nodeSocket);
+                } else {
+                    Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
+                    NodeConnection nodeConnection = new NodeConnection(node, nodeSocket, this.nodeManager);
+                    log.info("Creating NodeConnection with: " + nodeSocket.getIp());
+                    this.nodeManager.addNewConnection(nodeConnection);
                 }
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);

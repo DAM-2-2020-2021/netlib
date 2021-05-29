@@ -111,6 +111,8 @@ public class NodeConnection extends Threaded {
                 } else if (message.equals("I can hear you")) {
                     log.info("Acknowledgment from " + this.node.getIp() + " received.");
                     this.nodeChannel.setAcknowledgmentReceived();
+                }else if(message==null){
+                    log.info("Message null, removing NodeConnection");
                 }
             } catch (IOException e) {
                 log.error("Error in NodeConnection " + this.node.getIp(), e);
