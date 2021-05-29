@@ -395,6 +395,7 @@ public class NodeManager {
                 if (StringUtils.equals(nc.getIp(), ip)) {
                     nc.stop();
                     this.clientList.remove(nc);
+                    break;
                 }
             }
             notifyAll();
