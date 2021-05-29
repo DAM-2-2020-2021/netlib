@@ -10,22 +10,17 @@ import java.io.IOException;
 /**
  * Identifies Damn player and adds it to nodes HashMap
  */
-public class NodeIdentification implements Runnable {
+public class NodeIdentification extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeIdentification.class);
     private NodeManager nodeManager;
     private NodeSocket nodeSocket;
     private String ip;
-    private Thread t;
-    private boolean run;
 
     public NodeIdentification(NodeManager nodeManager, NodeSocket nodeSocket) {
         this.nodeManager = nodeManager;
         this.nodeSocket = nodeSocket;
         this.ip = nodeSocket.getIp();
-        this.run=true;
-        this.t=new Thread(this);
-        this.t.start();
-        //this.start();
+        this.start();
     }
 
     @Override
@@ -37,16 +32,21 @@ public class NodeIdentification implements Runnable {
                 if (message.equals("I am Damn player")) {
                     log.info("New Damn player identified! " + this.ip);
                     this.nodeManager.putNodeId(NodeManager.getIdFromIp(this.ip), this.ip);
-                    this.run=false;
+                    Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
+                    NodeConnection nodeConnection = new NodeConnection(node, this.nodeSocket, this.nodeManager);
+                    log.info("Creating NodeConnection with: " + this.nodeSocket.getIp());
+                    this.nodeManager.addNewConnection(nodeConnection);
+                    this.stop();
                 } else if (message == null) {
                     log.info("Message from " + this.ip + " null.");
-                    this.run=false;
-                }else{
-                    this.run=false;
+                    this.stop();
+                } else {
+                    this.stop();
                 }
             } catch (IOException e) {
                 log.error("Error in NodeIdentification", e.getMessage());
             }
         }
+        log.info("NodeIdentification for " + this.nodeSocket.getIp() + " removed.");
     }
 }

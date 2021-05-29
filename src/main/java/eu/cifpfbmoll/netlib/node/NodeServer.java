@@ -16,15 +16,13 @@ import java.net.ServerSocket;
  * @see Threaded
  * @see ServerSocket
  */
-public class NodeServer implements Runnable {
+public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
     public static final int DEFAULT_PORT = 420;
     private ServerSocket socket;
     private NodeSocket client;
     private final NodeManager nodeManager;
     private String ip;
-    public Thread t;
-    private boolean run;
 
     /**
      * Creates a new NodeServer with an instance of NodeManager and PacketManager.
@@ -33,16 +31,13 @@ public class NodeServer implements Runnable {
      */
     public NodeServer(NodeManager manager, String ip) {
         this.ip = ip;
-        this.run=true;
         this.nodeManager = manager;
         try {
-            this.socket = new ServerSocket(9999);
+            this.socket = new ServerSocket(DEFAULT_PORT);
         } catch (IOException e) {
             log.error("Error while creating ServerSocket", e);
         }
-        this.t=new Thread(this);
-        //this.t.start();
-        //this.start();
+        this.start();
     }
 
     @Override
@@ -56,10 +51,7 @@ public class NodeServer implements Runnable {
                     log.info("Creating new connection with: " + this.client.getIp());
                     new NodeIdentification(this.nodeManager, this.client);
                 } else {
-                    Node node = new Node(NodeManager.getIdFromIp(this.ip), this.ip);
-                    NodeConnection nodeConnection = new NodeConnection(node, this.client, this.nodeManager);
-                    log.info("Creating NodeConnection with: " + this.client.getIp());
-                    this.nodeManager.addNewConnection(nodeConnection);
+
                 }
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);

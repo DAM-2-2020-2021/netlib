@@ -90,7 +90,6 @@ public class NodeChannel extends Threaded {
         } catch (IOException e) {
             log.error("Error sending Acknowledgment", e);
         }
-
     }
 
     @Override

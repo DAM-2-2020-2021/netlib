@@ -25,7 +25,7 @@ public class NodeManager {
     private final List<NodeClient> clientList = new ArrayList<>();
     private final Integer id;
     private final NodeServer nodeServer;
-    private PacketManager packetManager;
+    private final PacketManager packetManager;
     private final String ip;
     private String subnet;
 
@@ -39,12 +39,11 @@ public class NodeManager {
         this.id = getIdFromIp(ip);
         this.ip = ip;
         this.subnet = this.getCurrentSubnet();
-        //this.packetManager = new PacketManager();
-
+        this.packetManager = new PacketManager();
         //this.discover();
-        this.createNodeClient("192.168.1.27");
         this.nodeServer = new NodeServer(this, this.ip);
-        this.nodeServer.t.start();
+        this.createNodeClient("192.168.1.27");
+
     }
 
     /**
@@ -103,10 +102,7 @@ public class NodeManager {
      */
     private void createNodeClient(String ip) {
         try {
-            // this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
-            NodeClient nodeClient = new NodeClient(ip, this);
-            this.clientList.add(nodeClient);
-            nodeClient.t.start();
+            this.clientList.add(new NodeClient(ip, new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
             log.info("NodeClient creado exitosamente");
         } catch (IOException e) {
             log.error("Error creating a socket for NodeClient", e);
