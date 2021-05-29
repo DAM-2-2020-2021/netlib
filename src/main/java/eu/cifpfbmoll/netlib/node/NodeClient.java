@@ -31,11 +31,12 @@ public class NodeClient extends Threaded {
         this.nodeSocket = nodeSocket;
         this.start();
     }
-    public NodeClient(String ip, NodeManager nodeManager) throws IOException{
-        this.ip=ip;
-        this.nodeManager=nodeManager;
-        Socket socket=new Socket(ip,9999);
-        this.nodeSocket=new NodeSocket(socket);
+
+    public NodeClient(String ip, NodeManager nodeManager) throws IOException {
+        this.ip = ip;
+        this.nodeManager = nodeManager;
+        Socket socket = new Socket(ip, 9999);
+        this.nodeSocket = new NodeSocket(socket);
         this.start();
     }
 
@@ -52,15 +53,18 @@ public class NodeClient extends Threaded {
             outputStream.writeUTF("I am Damn player");
             outputStream.flush();
         } catch (IOException e) {
-            log.error("Error in NodeClient",e);
+            log.error("Error in NodeClient", e);
         }
     }
 
     @Override
     public void run() {
-        while (!this.nodeManager.nodeInHash(ip)) {
+        while (this.run) {
             this.sendHello();
             this.sleep(DELAY);
+            if (this.nodeManager.nodeInHash(this.ip)) {
+                this.stop();
+            }
         }
         this.nodeManager.removeNodeClient(this);
     }
