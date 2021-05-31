@@ -18,7 +18,7 @@ import java.net.ServerSocket;
  */
 public class NodeServer extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
-    public static final int DEFAULT_PORT = 420;
+    public static final int DEFAULT_PORT = 3000;
     private ServerSocket socket;
     private final NodeManager manager;
 
@@ -28,13 +28,7 @@ public class NodeServer extends Threaded {
      * @param manager NodeManager instance.
      */
     public NodeServer(NodeManager manager) {
-        this.manager = manager;
-        try {
-            this.socket = new ServerSocket(DEFAULT_PORT);
-            this.start();
-        } catch (IOException e) {
-            log.error("Error while creating ServerSocket", e);
-        }
+        this(manager, DEFAULT_PORT);
     }
 
     public NodeServer(NodeManager manager, int port) {
