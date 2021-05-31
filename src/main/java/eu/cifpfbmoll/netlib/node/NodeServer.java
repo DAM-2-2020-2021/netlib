@@ -31,10 +31,20 @@ public class NodeServer extends Threaded {
         this.manager = manager;
         try {
             this.socket = new ServerSocket(DEFAULT_PORT);
+            this.start();
         } catch (IOException e) {
             log.error("Error while creating ServerSocket", e);
         }
-        this.start();
+    }
+
+    public NodeServer(NodeManager manager, int port) {
+        this.manager = manager;
+        try {
+            this.socket = new ServerSocket(port);
+            this.start();
+        } catch (IOException e) {
+            log.error("Error while creating ServerSocket", e);
+        }
     }
 
     @Override

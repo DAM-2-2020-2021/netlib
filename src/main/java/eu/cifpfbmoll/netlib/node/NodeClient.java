@@ -29,6 +29,7 @@ public class NodeClient extends Threaded {
         this.manager = manager;
         this.ip = ip;
         this.start();
+        log.info("NodeClient: " + ip);
     }
 
     /**

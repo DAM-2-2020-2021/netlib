@@ -100,7 +100,11 @@ public class NodeManager {
      * @param ip user's ip.
      */
     public NodeManager(String ip) {
-        this(ip, true);
+        this(ip, true, NodeServer.DEFAULT_PORT);
+    }
+
+    public NodeManager(String ip, int serverPort) {
+        this(ip, true, serverPort);
     }
 
     /**
@@ -110,12 +114,12 @@ public class NodeManager {
      * @param ip     user's IP
      * @param server boolean value if server should be created
      */
-    public NodeManager(String ip, boolean server) {
+    public NodeManager(String ip, boolean server, int serverPort) {
         this.id = getIdForIp(ip);
         this.ip = ip;
         this.getCurrentSubnet();
         this.packetManager = new PacketManager();
-        this.nodeServer = server ? new NodeServer(this) : null;
+        this.nodeServer = server ? new NodeServer(this, serverPort) : null;
     }
 
     /**
