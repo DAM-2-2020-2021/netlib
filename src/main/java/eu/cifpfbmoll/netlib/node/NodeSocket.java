@@ -3,6 +3,8 @@ package eu.cifpfbmoll.netlib.node;
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.net.Socket;
  * @see OutputStream
  */
 public class NodeSocket implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(NodeSocket.class);
     private final Socket socket;
     private final InputStream inputStream;
     private final OutputStream outputStream;
@@ -141,6 +144,7 @@ public class NodeSocket implements Closeable {
             write(packet.dump());
             return true;
         } catch (Exception e) {
+            log.error("failed to send packet: ", e);
             return false;
         }
     }
