@@ -130,6 +130,7 @@ public class NodeSocket implements Closeable {
     public boolean send(Object object, Integer src, Integer dst) {
         if (object == null) return false;
         Class<?> clazz = object.getClass();
+        log.info("sending packet to node: " + dst);
         try {
             PacketType packetType = clazz.getAnnotation(PacketType.class);
             if (packetType == null) return false;
