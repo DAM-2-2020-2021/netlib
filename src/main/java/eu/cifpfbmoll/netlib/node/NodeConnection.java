@@ -1,12 +1,11 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
-import eu.cifpfbmoll.netlib.packet.PacketParser;
 import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketException;
 import java.util.Objects;
 
 /**
@@ -28,7 +27,6 @@ public class NodeConnection extends Threaded {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
-        log.info("New NodeConnection created with " + this.node.getIp());
         this.start();
     }
 
@@ -94,6 +92,7 @@ public class NodeConnection extends Threaded {
                 int size = this.socket.read(data);
                 if (size < 0) continue;
                 Packet packet = Packet.load(data);
+                log.info("received packet with dst: " + packet.getDestinationId());
                 if (!Objects.equals(packet.getDestinationId(), this.manager.getId())) {
                     packet.addResender(this.manager.getId());
                     packet.decreaseTTL();
@@ -101,6 +100,8 @@ public class NodeConnection extends Threaded {
                 } else {
                     this.manager.getPacketManager().process(packet);
                 }
+            } catch (SocketException ignored) {
+                this.socket.safeClose();
             } catch (Exception e) {
                 log.error("NodeConnection thread failed: ", e);
                 this.socket.safeClose();

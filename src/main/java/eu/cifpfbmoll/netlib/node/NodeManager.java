@@ -204,8 +204,10 @@ public class NodeManager {
      */
     public boolean send(Integer id, Object packet) {
         NodeConnection conn = connect(id);
-        if (conn == null) return false;
-        return conn.send(packet);
+        if (conn != null) return conn.send(packet);
+        if (this.nodes.get(id) == null)
+            broadcast(packet);
+        return false;
     }
 
     /**
@@ -218,8 +220,8 @@ public class NodeManager {
     public boolean send(Integer id, Packet packet) {
         NodeConnection conn = connect(id);
         if (conn != null) return conn.send(packet);
-        if (this.nodes.get(id) == null) {
-        }
+        if (this.nodes.get(id) == null)
+            broadcast(packet);
         return false;
     }
 

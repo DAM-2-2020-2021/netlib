@@ -50,7 +50,6 @@ public class NodeServer extends Threaded {
                     Integer nodeID = this.manager.getNodeIdByIP(nodeSocket.getIp());
                     NodeConnection nodeConnection = new NodeConnection(new Node(nodeID, nodeSocket.getIp()), nodeSocket, this.manager);
                     this.manager.addNodeConnection(nodeConnection);
-                    log.info(String.format("New NodeConnection added! %s", nodeSocket.getIp()));
                 } else {
                     new NodeIdentification(nodeSocket, this.manager);
                     log.info("Identifying connection with: " + nodeSocket.getIp());
