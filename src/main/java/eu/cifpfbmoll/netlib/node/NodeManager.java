@@ -186,6 +186,16 @@ public class NodeManager {
     }
 
     /**
+     * Check if we are connected to a specific Node.
+     *
+     * @param id Node's id
+     * @return true if we are connected to the specified node, false otherwise
+     */
+    public boolean isConnected(Integer id) {
+        return nodeConnectionById(id) != null;
+    }
+
+    /**
      * Send a Packet object to an other node with id.
      *
      * @param id     target node id
@@ -207,8 +217,52 @@ public class NodeManager {
      */
     public boolean send(Integer id, Packet packet) {
         NodeConnection conn = connect(id);
-        if (conn == null) return false;
-        return conn.send(packet);
+        if (conn != null) return conn.send(packet);
+        if (this.nodes.get(id) == null) {
+        }
+        return false;
+    }
+
+    public boolean sendAndDisconnect(Integer id, Object object) {
+        boolean result = false;
+        NodeConnection conn = connect(id);
+        if (conn != null) {
+            result = conn.send(object);
+            conn.getNodeSocket().safeClose();
+        }
+        return result;
+    }
+
+    public boolean sendAndDisconnect(Integer id, Packet packet) {
+        boolean result = false;
+        NodeConnection conn = connect(id);
+        if (conn != null) {
+            result = conn.send(packet);
+            conn.getNodeSocket().safeClose();
+        }
+        return result;
+    }
+
+    public void broadcast(Object object) {
+        for (Integer id : this.nodes.keySet()) {
+            NodeConnection conn = nodeConnectionById(id);
+            if (conn != null) {
+                conn.send(object);
+            } else {
+                sendAndDisconnect(id, object);
+            }
+        }
+    }
+
+    public void broadcast(Packet packet) {
+        for (Integer id : this.nodes.keySet()) {
+            NodeConnection conn = nodeConnectionById(id);
+            if (conn != null) {
+                conn.send(packet);
+            } else {
+                sendAndDisconnect(id, packet);
+            }
+        }
     }
 
     /**

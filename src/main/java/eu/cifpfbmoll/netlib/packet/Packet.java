@@ -248,6 +248,13 @@ public class Packet {
     }
 
     /**
+     * Decrease TTL value by one.
+     */
+    public void decreaseTTL() {
+        if (this.ttl > 0) this.ttl--;
+    }
+
+    /**
      * Get packet type.
      *
      * @return packet type

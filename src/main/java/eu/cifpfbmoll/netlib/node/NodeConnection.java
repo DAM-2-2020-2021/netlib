@@ -96,6 +96,7 @@ public class NodeConnection extends Threaded {
                 Packet packet = Packet.load(data);
                 if (!Objects.equals(packet.getDestinationId(), this.manager.getId())) {
                     packet.addResender(this.manager.getId());
+                    packet.decreaseTTL();
                     this.manager.send(packet.getDestinationId(), packet);
                 } else {
                     this.manager.getPacketManager().process(packet);
