@@ -102,10 +102,7 @@ public class PacketManager {
     public boolean process(Packet packet) {
         if (packet == null) return false;
         PacketInfo<?> packetInfo = this.packetInfo.get(packet.getType());
-        if (packetInfo == null) {
-            log.warn("No registered packet handler found for packet type: " + packet.getType());
-            return false;
-        }
+        if (packetInfo == null) return false;
         packetInfo.process(packet);
         return true;
     }

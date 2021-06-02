@@ -87,7 +87,6 @@ public class NodeConnection extends Threaded {
                 int size = this.socket.read(data);
                 if (size < 0) continue;
                 Packet packet = Packet.load(data);
-                log.info("received packet with dst: " + packet.getDestinationId());
                 if (!Objects.equals(packet.getDestinationId(), this.manager.getId())) {
                     packet.addResender(this.manager.getId());
                     packet.decreaseTTL();

@@ -178,7 +178,6 @@ public class NodeManager {
             NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
             conn = new NodeConnection(new Node(id, ip), socket, this);
             addNodeConnection(conn);
-            log.info("created new NodeConnection with ip: " + ip);
         } catch (IOException e) {
             log.error("failed to create connection with ", e);
         }
