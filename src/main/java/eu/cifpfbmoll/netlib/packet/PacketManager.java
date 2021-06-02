@@ -99,13 +99,14 @@ public class PacketManager {
      *
      * @param packet packet to process
      */
-    public void process(Packet packet) {
-        if (packet == null) return;
+    public boolean process(Packet packet) {
+        if (packet == null) return false;
         PacketInfo<?> packetInfo = this.packetInfo.get(packet.getType());
         if (packetInfo == null) {
             log.warn("No registered packet handler found for packet type: " + packet.getType());
-        } else {
-            packetInfo.process(packet);
+            return false;
         }
+        packetInfo.process(packet);
+        return true;
     }
 }

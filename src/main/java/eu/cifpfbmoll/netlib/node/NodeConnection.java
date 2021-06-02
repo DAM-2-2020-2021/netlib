@@ -21,13 +21,14 @@ public class NodeConnection extends Threaded {
     private final Node node;
     private final NodeSocket socket;
     private final NodeManager manager;
-    //private final NodeChannel nodeChannel = new NodeChannel(this);
+    private final NodeChannel channel = new NodeChannel(this);
 
     public NodeConnection(Node node, NodeSocket socket, NodeManager manager) {
         this.node = node;
         this.socket = socket;
         this.manager = manager;
         this.start();
+        this.channel.start();
     }
 
     /**
@@ -92,7 +93,8 @@ public class NodeConnection extends Threaded {
                     packet.decreaseTTL();
                     this.manager.send(packet.getDestinationId(), packet);
                 } else {
-                    this.manager.getPacketManager().process(packet);
+                    if (!this.manager.getPacketManager().process(packet))
+                        this.channel.getPacketManager().process(packet);
                 }
             } catch (SocketException ignored) {
                 this.socket.safeClose();
