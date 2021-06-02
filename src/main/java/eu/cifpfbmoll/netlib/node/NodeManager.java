@@ -377,6 +377,7 @@ public class NodeManager {
             NodeConnection conn = this.nodeConnections.get(i);
             if (conn.getNode().getId().equals(id)) {
                 this.nodeConnections.remove(i);
+                log.info("removed NodeConnection with id");
                 break;
             }
         }
