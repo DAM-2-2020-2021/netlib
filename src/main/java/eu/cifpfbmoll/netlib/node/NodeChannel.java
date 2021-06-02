@@ -21,16 +21,19 @@ public class NodeChannel extends Threaded {
         this.nodeConnection = nodeConnection;
 
         this.packetManager.add(RYSTPacket.class, (id, ryst) -> {
-            System.out.println("received RYST packet");
             this.nodeConnection.send(new ACKPacket());
         });
 
         this.packetManager.add(ACKPacket.class, (id, ack) -> {
-            System.out.println("received ACK packet");
             this.tries.set(0);
         });
     }
 
+    /**
+     * Get Packet Manager.
+     *
+     * @return current Packet Manager
+     */
     public PacketManager getPacketManager() {
         return packetManager;
     }
