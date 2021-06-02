@@ -58,26 +58,20 @@ public class NodeConnection extends Threaded {
     }
 
     /**
-     * Send a PacketObject to the connected node.
+     * Send a Packet to the connected node.
      *
      * @param object PacketObject to send
      * @return true if send was successful, false otherwise
      */
     public boolean send(Object object) {
-        return this.socket.send(object, this.manager.getId(), this.node.getId());
-    }
-
-    /**
-     * Send a Packet to the connected node.
-     *
-     * @param packet Packet to send
-     * @return true if send was successful, false otherwise
-     */
-    public boolean send(Packet packet) {
-        if (packet == null) return false;
+        if (object == null) return false;
         try {
-            this.socket.write(packet.dump());
-            return true;
+            if (object instanceof Packet) {
+                this.socket.write(((Packet) object).dump());
+                return true;
+            } else {
+                return this.socket.send(object, this.manager.getId(), this.node.getId());
+            }
         } catch (Exception e) {
             log.error("failed to send packet", e);
             return false;

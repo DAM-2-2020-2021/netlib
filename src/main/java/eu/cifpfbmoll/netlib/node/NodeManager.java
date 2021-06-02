@@ -211,20 +211,12 @@ public class NodeManager {
     }
 
     /**
-     * Send a Packet to an other node with id.
+     * Send a single packet to a node and disconnect.
      *
-     * @param id     target node id
-     * @param packet packet object to send
+     * @param id node id to send packet to
+     * @param object packet object to send
      * @return true if send was successful, false otherwise
      */
-    public boolean send(Integer id, Packet packet) {
-        NodeConnection conn = connect(id);
-        if (conn != null) return conn.send(packet);
-        if (this.nodes.get(id) == null)
-            broadcast(packet);
-        return false;
-    }
-
     public boolean sendAndDisconnect(Integer id, Object object) {
         boolean result = false;
         NodeConnection conn = connect(id);
@@ -235,16 +227,11 @@ public class NodeManager {
         return result;
     }
 
-    public boolean sendAndDisconnect(Integer id, Packet packet) {
-        boolean result = false;
-        NodeConnection conn = connect(id);
-        if (conn != null) {
-            result = conn.send(packet);
-            conn.getNodeSocket().safeClose();
-        }
-        return result;
-    }
-
+    /**
+     * Broadcast a packet object to all known nodes.
+     *
+     * @param object packet object to send
+     */
     public void broadcast(Object object) {
         for (Integer id : this.nodes.keySet()) {
             NodeConnection conn = nodeConnectionById(id);
@@ -252,17 +239,6 @@ public class NodeManager {
                 conn.send(object);
             } else {
                 sendAndDisconnect(id, object);
-            }
-        }
-    }
-
-    public void broadcast(Packet packet) {
-        for (Integer id : this.nodes.keySet()) {
-            NodeConnection conn = nodeConnectionById(id);
-            if (conn != null) {
-                conn.send(packet);
-            } else {
-                sendAndDisconnect(id, packet);
             }
         }
     }
