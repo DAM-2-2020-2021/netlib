@@ -316,26 +316,7 @@ public class PacketParser {
                 },
                 (object, field, bb) -> {
                     String str = (String) field.get(object);
-                    byte[] bytes = str.getBytes(Packet.CHARSET_ENCODING);
-                    bb.put((byte) bytes.length);
-                    for (byte b : bytes)
-                        bb.put(b);
-                },
-                (object, field, bb) -> {
-                    int size = bb.get() & 0xff;
-                    byte[] bytes = new byte[size];
-                    for (int i = 0; i < size; i++)
-                        bytes[i] = bb.get();
-                    field.set(object, new String(bytes, Packet.CHARSET_ENCODING));
-                }));
-
-        this.types.put(List.class, new TypeInfo(
-                (object, field) -> {
-                    List<?> list = (List<?>) field.get(object);
-                    return list.size() * STRING_SIZE + SIZE;
-                },
-                (object, field, bb) -> {
-                    String str = (String) field.get(object);
+                    str = str != null ? str : "";
                     byte[] bytes = str.getBytes(Packet.CHARSET_ENCODING);
                     bb.put((byte) bytes.length);
                     for (byte b : bytes)
