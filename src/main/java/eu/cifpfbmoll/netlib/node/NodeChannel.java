@@ -7,13 +7,15 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class NodeChannel extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeChannel.class);
-    private static final int SEND_DELAY = 750;
+    private static final int SEND_DELAY = 1000;
     private static final int MAX_ACK_TRIES = 10;
     private final NodeConnection nodeConnection;
     private final PacketManager packetManager = new PacketManager();
-    private int tries = 0;
+    private final AtomicInteger tries = new AtomicInteger(0);
 
     public NodeChannel(NodeConnection nodeConnection) {
         this.nodeConnection = nodeConnection;
@@ -25,31 +27,12 @@ public class NodeChannel extends Threaded {
 
         this.packetManager.add(ACKPacket.class, (id, ack) -> {
             System.out.println("received ACK packet");
-            setTries(0);
+            this.tries.set(0);
         });
     }
 
     public PacketManager getPacketManager() {
         return packetManager;
-    }
-
-    public int getTries() {
-        return tries;
-    }
-
-    public synchronized void setTries(int tries) {
-        this.tries = tries;
-        notifyAll();
-    }
-
-    public synchronized void increaseTries() {
-        this.tries++;
-        notifyAll();
-    }
-
-    public synchronized void decreaseTries() {
-        this.tries--;
-        notifyAll();
     }
 
     @Override
@@ -59,9 +42,8 @@ public class NodeChannel extends Threaded {
             try {
                 this.nodeConnection.send(ryst);
                 Thread.sleep(SEND_DELAY);
-                if (getTries() > MAX_ACK_TRIES)
+                if (this.tries.getAndIncrement() > MAX_ACK_TRIES)
                     this.nodeConnection.getNodeSocket().safeClose();
-                this.increaseTries();
             } catch (Exception e) {
                 log.error("NodeChannel thread failed: ", e);
                 this.nodeConnection.getNodeSocket().safeClose();
