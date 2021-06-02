@@ -82,7 +82,6 @@ public class NodeSocket implements Closeable {
      * @throws IOException if an IO error occurs
      */
     public void write(byte[] data) throws IOException {
-        if (isClosed()) return;
         this.outputStream.write(data);
         this.outputStream.flush();
     }
