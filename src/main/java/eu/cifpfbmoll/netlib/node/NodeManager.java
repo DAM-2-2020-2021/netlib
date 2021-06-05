@@ -178,7 +178,6 @@ public class NodeManager {
             NodeSocket socket = new NodeSocket(ip, NodeServer.DEFAULT_PORT);
             conn = new NodeConnection(new Node(id, ip), socket, this);
             addNodeConnection(conn);
-            log.info("created new NodeConnection with ip: " + ip);
         } catch (IOException e) {
             log.error("failed to create connection with ", e);
         }
@@ -377,6 +376,7 @@ public class NodeManager {
             NodeConnection conn = this.nodeConnections.get(i);
             if (conn.getNode().getId().equals(id)) {
                 this.nodeConnections.remove(i);
+                log.info("removed NodeConnection with id: " + id);
                 break;
             }
         }
