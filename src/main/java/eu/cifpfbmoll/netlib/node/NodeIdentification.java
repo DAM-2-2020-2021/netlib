@@ -28,9 +28,12 @@ public class NodeIdentification extends Threaded {
         this.start();
 
         this.packetManager.add(HelloPacket.class, (id, hello) -> {
-            this.socket.send(new ACKPacket(), this.manager.getId(), id);
-            this.manager.addNode(id, this.socket.getIp());
-            this.socket.safeClose();
+            try {
+                this.socket.send(new ACKPacket(), this.manager.getId(), id);
+                this.manager.addNode(id, this.socket.getIp());
+                this.socket.safeClose();
+            } catch (Exception ignored) {
+            }
         });
     }
 

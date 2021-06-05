@@ -1,6 +1,5 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.annotation.PacketType;
 import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketParser;
 import org.slf4j.Logger;
@@ -128,26 +127,22 @@ public class NodeSocket implements Closeable {
      * @param object PacketObject to send
      * @return true if send was successful, false otherwise
      */
-    public boolean send(Object object, Integer src, Integer dst) {
+    public boolean send(Object object, Integer src, Integer dst) throws IOException, IllegalAccessException {
         if (object == null) return false;
         Class<?> clazz = object.getClass();
-        try {
-            PacketType packetType = clazz.getAnnotation(PacketType.class);
-            if (packetType == null) return false;
-            String type = Packet.formatType(packetType.value());
-            PacketParser parser = PacketParser.getInstance();
-            byte[] data = parser.serialize(object);
-            if (data == null) return false;
-            Packet packet = Packet.create(type, src, dst, data);
-            int size = packet.size();
-            if (size > Packet.MAX_PACKET_SIZE)
-                throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
-            write(packet.dump());
-            return true;
-        } catch (Exception e) {
-            log.error("failed to send packet: ", e);
-            return false;
-        }
+        PacketParser parser = PacketParser.getInstance();
+        String type = parser.getPacketType(clazz);
+        if (type == null)
+            throw new IllegalArgumentException(String.format("%s must contain @PacketType", clazz.getSimpleName()));
+        type = Packet.formatType(type);
+        byte[] data = parser.serialize(object);
+        if (data == null) return false;
+        Packet packet = Packet.create(type, src, dst, data);
+        int size = packet.size();
+        if (size > Packet.MAX_PACKET_SIZE)
+            throw new IllegalArgumentException(String.format("Object %s passed maximum size: %d/%d", clazz.getSimpleName(), packet.size(), Packet.MAX_PACKET_SIZE));
+        write(packet.dump());
+        return true;
     }
 
     /**
