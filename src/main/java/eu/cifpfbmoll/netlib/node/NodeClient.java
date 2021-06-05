@@ -8,6 +8,8 @@ import eu.cifpfbmoll.netlib.util.Threaded;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketException;
+
 /**
  * Sends messages until connects with another pc.
  */
@@ -64,6 +66,7 @@ public class NodeClient extends Threaded {
                     }
                 }
             }
+        } catch (SocketException ignored) {
         } catch (Exception e) {
             log.error("NodeClient's thread failed: ", e);
         } finally {

@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NodeChannel extends Threaded {
     private static final Logger log = LoggerFactory.getLogger(NodeChannel.class);
     private static final int SEND_DELAY = 1000;
-    private static final int MAX_ACK_TRIES = 10;
+    private static final int MAX_ACK_TRIES = 5;
     private final NodeConnection nodeConnection;
     private final PacketManager packetManager = new PacketManager();
     private final AtomicInteger tries = new AtomicInteger(0);

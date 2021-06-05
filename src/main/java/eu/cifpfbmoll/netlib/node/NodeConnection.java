@@ -74,7 +74,6 @@ public class NodeConnection extends Threaded {
                 return this.socket.send(object, this.manager.getId(), this.node.getId());
             }
         } catch (Exception e) {
-            log.error("failed to send packet", e);
             return false;
         }
     }
