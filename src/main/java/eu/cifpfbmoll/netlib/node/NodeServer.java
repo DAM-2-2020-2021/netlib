@@ -52,7 +52,6 @@ public class NodeServer extends Threaded {
                     this.manager.addNodeConnection(nodeConnection);
                 } else {
                     new NodeIdentification(nodeSocket, this.manager);
-                    log.info("Identifying connection with: " + nodeSocket.getIp());
                 }
             } catch (Exception e) {
                 log.error("Error in NodeServer run", e);

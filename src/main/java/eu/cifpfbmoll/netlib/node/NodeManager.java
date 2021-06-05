@@ -1,6 +1,5 @@
 package eu.cifpfbmoll.netlib.node;
 
-import eu.cifpfbmoll.netlib.packet.Packet;
 import eu.cifpfbmoll.netlib.packet.PacketHandler;
 import eu.cifpfbmoll.netlib.packet.PacketManager;
 import org.apache.commons.lang3.StringUtils;
@@ -18,17 +17,13 @@ import java.util.*;
  */
 public class NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
-    private static final int CALL_TIMEOUT = 1500;
-    private final Map<Integer, String> nodes = new HashMap<>();
     private final List<NodeConnection> nodeConnections = new ArrayList<>();
-    private final Integer id;
-    private final NodeServer nodeServer;
-    private final PacketManager packetManager;
-    private final String ip;
-    private String subnet;
     private final List<NodeClient> clientList = new ArrayList<>();
-
-    public static int counter = 0;
+    private final Map<Integer, String> nodes = new HashMap<>();
+    private final PacketManager packetManager;
+    private final NodeServer nodeServer;
+    private final Integer id;
+    private final String ip;
 
     /**
      * Get ID for an IP.
@@ -117,27 +112,8 @@ public class NodeManager {
     public NodeManager(String ip, boolean server, int serverPort) {
         this.id = getIdForIp(ip);
         this.ip = ip;
-        this.getCurrentSubnet();
         this.packetManager = new PacketManager();
         this.nodeServer = server ? new NodeServer(this, serverPort) : null;
-    }
-
-    /**
-     * Restarts communications between 2 players.
-     *
-     * @param nodeConnection NodeConnection to reset
-     */
-    public synchronized void setUpConnection(NodeConnection nodeConnection) {
-        //TODO Ask Serafi if this method is necessary.
-        int id = nodeConnection.getNode().getId();
-        String ip = this.nodes.get(id);
-        this.nodeConnections.remove(nodeConnection);
-        try {
-            this.nodeConnections.add(new NodeConnection(new Node(id, ip), new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
-        } catch (IOException e) {
-            log.error("Problem creating new NoseSocket", e);
-        }
-        notifyAll();
     }
 
     /**
@@ -148,19 +124,6 @@ public class NodeManager {
      */
     public boolean nodeInHash(String ip) {
         return nodes.containsValue(ip);
-    }
-
-    /**
-     * Creates a new NodeClient instance from a discovered ip.
-     *
-     * @param ip Node destination IP
-     */
-    private void createNodeClient(String ip) {
-        /*try {
-            this.clientList.add(new NodeClient(new NodeSocket(ip, NodeServer.DEFAULT_PORT), this));
-        } catch (IOException e) {
-            log.error("Error creating a socket for NodeClient");
-        }*/
     }
 
     /**
@@ -212,7 +175,7 @@ public class NodeManager {
     /**
      * Send a single packet to a node and disconnect.
      *
-     * @param id node id to send packet to
+     * @param id     node id to send packet to
      * @param object packet object to send
      * @return true if send was successful, false otherwise
      */
@@ -376,7 +339,6 @@ public class NodeManager {
             NodeConnection conn = this.nodeConnections.get(i);
             if (conn.getNode().getId().equals(id)) {
                 this.nodeConnections.remove(i);
-                log.info("removed NodeConnection with id: " + id);
                 break;
             }
         }
@@ -396,7 +358,6 @@ public class NodeManager {
             this.removeNodeConnectionById(conn.getNode().getId());
         }
         this.nodeConnections.add(nodeConnection);
-        log.info("added node connection with id: " + id);
         notifyAll();
     }
 
@@ -535,13 +496,5 @@ public class NodeManager {
     public String getSubnet(String ip) {
         String[] splitIp = ip.split("\\.");
         return String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
-    }
-
-    /**
-     * Retrieves subnet from user's ip.
-     */
-    public void getCurrentSubnet() {
-        String[] splitIp = ip.split("\\.");
-        subnet = String.format("%s.%s.%s", splitIp[0], splitIp[1], splitIp[2]);
     }
 }
