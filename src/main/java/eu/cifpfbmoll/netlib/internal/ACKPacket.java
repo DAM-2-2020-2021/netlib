@@ -4,5 +4,5 @@ import eu.cifpfbmoll.netlib.annotation.PacketType;
 
 @PacketType(ACKPacket.type)
 public class ACKPacket {
-    public static final String type = "HELO";
+    public static final String type = "ACK";
 }
