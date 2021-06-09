@@ -3,12 +3,10 @@ package eu.cifpfbmoll.netlib.packet;
 import eu.cifpfbmoll.netlib.annotation.PacketAttribute;
 import eu.cifpfbmoll.netlib.annotation.PacketType;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Parse {@link eu.cifpfbmoll.netlib.annotation.PacketType} classes and serialize/deserialize their PacketAttributes.
@@ -381,6 +379,24 @@ public class PacketParser {
     }
 
     /**
+     * Get an ordered field list of all annotated fields in a class.
+     *
+     * @param clazz class to get fields from
+     * @param annotation annotation to check
+     * @return ordered field list
+     */
+    public List<Field> getOrderedFieldsWithAnnotation(Class<?> clazz, Class<? extends Annotation> annotation) {
+        List<Field> fields = new ArrayList<>();
+        for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(annotation))
+                fields.add(field);
+        }
+        fields.sort(Comparator.comparing(Field::getName));
+        return fields;
+    }
+
+    /**
      * Serialize Object's annotated PacketAttribute fields to byte array.
      *
      * @param object object to serialize
@@ -392,18 +408,15 @@ public class PacketParser {
         if (object == null) return null;
         int size = 0;
         Class<?> clazz = object.getClass();
-        List<Field> fields = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
+        List<Field> fields = getOrderedFieldsWithAnnotation(clazz, PacketAttribute.class);
+        for (Field field : fields) {
             field.setAccessible(true);
-            if (field.isAnnotationPresent(PacketAttribute.class)) {
-                TypeInfo typeInfo = getTypeInfo(field.getType());
-                size += typeInfo.size.handle(object, field);
-                fields.add(field);
-            }
+            TypeInfo typeInfo = getTypeInfo(field.getType());
+            size += typeInfo.size(object, field);
         }
         ByteBuffer bb = ByteBuffer.allocate(size);
         for (Field field : fields)
-            getTypeInfo(field.getType()).serializer.handle(object, field, bb);
+            getTypeInfo(field.getType()).serialize(object, field, bb);
         return bb.array();
     }
 
@@ -418,10 +431,10 @@ public class PacketParser {
         if (object == null || data == null) return;
         Class<?> clazz = object.getClass();
         ByteBuffer bb = ByteBuffer.wrap(data);
-        for (Field field : clazz.getDeclaredFields()) {
+        List<Field> fields = getOrderedFieldsWithAnnotation(clazz, PacketAttribute.class);
+        for (Field field : fields) {
             field.setAccessible(true);
-            if (field.isAnnotationPresent(PacketAttribute.class))
-                getTypeInfo(field.getType()).deserializer.handle(object, field, bb);
+            getTypeInfo(field.getType()).deserialize(object, field, bb);
         }
     }
 }
