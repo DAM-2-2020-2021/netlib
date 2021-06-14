@@ -66,6 +66,7 @@ public class NodeConnection extends Threaded {
      */
     public boolean send(Object object) {
         if (object == null) return false;
+        log.info("sending to " + this.node.getId() + ": " + object);
         try {
             if (object instanceof Packet) {
                 this.socket.write(((Packet) object).dump());
@@ -74,6 +75,7 @@ public class NodeConnection extends Threaded {
                 return this.socket.send(object, this.manager.getId(), this.node.getId());
             }
         } catch (Exception e) {
+            log.error(String.format("failed to send packet to %d", this.node.getId()), e);
             return false;
         }
     }
